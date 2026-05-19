@@ -1044,7 +1044,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <div class="sidebar-spacer"></div>
 
       <div class="sidebar-bottom">
-        <div class="sidebar-item" onclick="showPage('landing')">
+        <div class="sidebar-item" onclick="handleSignOut()">
           <span class="si-icon">🚪</span> Sign Out
         </div>
       </div>
@@ -1282,6 +1282,10 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
           </div>
         </div>
 
+        <div style="background:var(--black3);border:1px solid var(--border);border-radius:11px;padding:12px 18px;margin-bottom:18px;font-size:12.5px;color:var(--white3)">
+          ⚠️ Admin data is a static placeholder — live analytics require a backend dashboard integration.
+        </div>
+
         <div class="card" style="padding:0;overflow:hidden">
           <div style="padding:18px 22px;border-bottom:1px solid var(--border2)">
             <div class="card-hdr" style="margin:0">Recent Users</div>
@@ -1434,6 +1438,17 @@ async function handleSignOut() {
   const client = sb();
   if (client) await client.auth.signOut();
   currentUser = null;
+  expenses = [];
+  setUserPlan('free');
+
+  // Reset expenses table
+  const tbody = document.getElementById('expenses-tbody');
+  if (tbody) tbody.innerHTML = `<tr id="expenses-empty"><td colspan="3" style="text-align:center;padding:40px 0;color:var(--white3);font-size:13px"><div style="font-size:28px;margin-bottom:10px">🧾</div>No receipts yet — scan your first receipt!</td></tr>`;
+  // Reset recent list
+  const rl = document.getElementById('recent-list');
+  if (rl) rl.innerHTML = `<div id="recent-empty" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px"><div style="font-size:28px;margin-bottom:10px">🧾</div>No receipts yet — scan your first receipt!</div>`;
+  // Reset KPIs to zero
+  updateDashboardKPIs();
   showPage('landing');
 }
 
@@ -1497,6 +1512,10 @@ async function startCheckoutFromBilling() { await startCheckout(); }
 const EYE_OPEN   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 const EYE_CLOSED = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function toggleEye(inputId, btnId) {
   const input = document.getElementById(inputId);
   const btn   = document.getElementById(btnId);
@@ -1544,6 +1563,8 @@ async function submitLogin(e) {
     if (client && json.session) await client.auth.setSession(json.session);
     hideLoading();
     showApp();
+    await loadUserProfile();
+    await loadExpenses();
   } catch (err) {
     hideLoading();
     showToast(err.message || 'Sign in failed.', true);
@@ -1647,6 +1668,11 @@ let uploadedImage = null;
 function handleFile(input) {
   const file = input.files[0];
   if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showToast('Please upload an image file (JPG, PNG, etc.)', true);
+    input.value = '';
+    return;
+  }
   const reader = new FileReader();
   reader.onload = e => {
     uploadedImage = e.target.result;
@@ -1747,9 +1773,9 @@ async function saveExpense() {
   const tbody = document.getElementById('expenses-tbody');
   const row   = document.createElement('tr');
   row.innerHTML = `
-    <td><div class="exp-vendor">${exp.vendor}</div><span class="tag tg">${exp.category}</span></td>
-    <td>${exp.date}</td>
-    <td style="color:var(--gold);font-weight:700">${exp.amount}</td>`;
+    <td><div class="exp-vendor">${esc(exp.vendor)}</div><span class="tag tg">${esc(exp.category)}</span></td>
+    <td>${esc(exp.date)}</td>
+    <td style="color:var(--gold);font-weight:700">${esc(exp.amount)}</td>`;
   tbody.insertBefore(row, tbody.firstChild);
 
   // Add to Recent Receipts on dashboard
@@ -1762,12 +1788,11 @@ async function saveExpense() {
     rrow.innerHTML = `
       <div class="rcpt-ico" style="background:var(--gold-dim)">🧾</div>
       <div class="rcpt-info">
-        <div class="rcpt-name">${exp.vendor}</div>
-        <div class="rcpt-meta"><span class="tag tg">${exp.category}</span><span class="rcpt-date">${exp.date}</span></div>
+        <div class="rcpt-name">${esc(exp.vendor)}</div>
+        <div class="rcpt-meta"><span class="tag tg">${esc(exp.category)}</span><span class="rcpt-date">${esc(exp.date)}</span></div>
       </div>
-      <div class="rcpt-amt">${exp.amount}</div>`;
+      <div class="rcpt-amt">${esc(exp.amount)}</div>`;
     recentList.insertBefore(rrow, recentList.firstChild);
-    // Keep only 5 most recent
     while (recentList.children.length > 5) recentList.removeChild(recentList.lastChild);
   }
 
@@ -1778,6 +1803,7 @@ async function saveExpense() {
   document.getElementById('scan-drop').style.display = 'block';
   document.getElementById('preview-area').style.display = 'none';
   document.getElementById('file-input').value = '';
+  document.getElementById('camera-input').value = '';
 
   showToast('✓ Expense saved!');
   showSection(document.querySelector('[data-section="expenses"]'), 'expenses');
@@ -1930,6 +1956,71 @@ function exportExcel() {
 }
 
 /* ─────────────────────────────
+   LOAD USER DATA FROM SUPABASE
+───────────────────────────── */
+async function loadUserProfile() {
+  const client = sb();
+  if (!client || !currentUser) return;
+  const { data } = await client.from('users').select('plan').eq('id', currentUser.id).single();
+  if (data?.plan === 'pro') setUserPlan('pro');
+}
+
+async function loadExpenses() {
+  const client = sb();
+  if (!client || !currentUser) return;
+
+  const { data, error } = await client
+    .from('expenses')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('date', { ascending: false });
+
+  if (error) { console.warn('[loadExpenses]', error.message); return; }
+  if (!data || !data.length) return;
+
+  document.getElementById('expenses-empty')?.remove();
+  document.getElementById('recent-empty')?.remove();
+
+  const tbody     = document.getElementById('expenses-tbody');
+  const recentList = document.getElementById('recent-list');
+
+  data.forEach((row, i) => {
+    const exp = {
+      vendor:   row.vendor   || 'Unknown',
+      date:     row.date     || '',
+      amount:   row.amount   != null ? '$' + parseFloat(row.amount).toFixed(2) : '$0.00',
+      tax:      row.tax      != null && row.tax > 0 ? '$' + parseFloat(row.tax).toFixed(2) : '',
+      category: row.category || 'Other',
+      payment:  row.payment  || '',
+      notes:    row.notes    || '',
+    };
+    expenses.push(exp);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="exp-vendor">${esc(exp.vendor)}</div><span class="tag tg">${esc(exp.category)}</span></td>
+      <td>${esc(exp.date)}</td>
+      <td style="color:var(--gold);font-weight:700">${esc(exp.amount)}</td>`;
+    tbody.appendChild(tr);
+
+    if (i < 5 && recentList) {
+      const rrow = document.createElement('div');
+      rrow.className = 'rcpt-row';
+      rrow.innerHTML = `
+        <div class="rcpt-ico" style="background:var(--gold-dim)">🧾</div>
+        <div class="rcpt-info">
+          <div class="rcpt-name">${esc(exp.vendor)}</div>
+          <div class="rcpt-meta"><span class="tag tg">${esc(exp.category)}</span><span class="rcpt-date">${esc(exp.date)}</span></div>
+        </div>
+        <div class="rcpt-amt">${esc(exp.amount)}</div>`;
+      recentList.appendChild(rrow);
+    }
+  });
+
+  updateDashboardKPIs();
+}
+
+/* ─────────────────────────────
    SEARCH FILTER
 ───────────────────────────── */
 function filterExpenses(q) {
@@ -1966,10 +2057,18 @@ function showToast(msg, isErr) {
   if (client) {
     const { data } = await client.auth.getSession();
     currentUser = data?.session?.user || null;
+
+    if (currentUser) {
+      showApp();
+      await loadUserProfile();
+      await loadExpenses();
+    }
+
     client.auth.onAuthStateChange((_, session) => {
       currentUser = session?.user || null;
     });
   }
+
   if (new URLSearchParams(window.location.search).get('checkout') === 'success') {
     setUserPlan('pro');
     showToast('🎉 Subscription activated — welcome to Pro!');
