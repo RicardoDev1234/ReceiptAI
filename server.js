@@ -10,7 +10,7 @@ const Anthropic      = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
 
 const app  = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 const ALLOWED_ORIGINS = [
   'https://receipt-ai-coral.vercel.app',
