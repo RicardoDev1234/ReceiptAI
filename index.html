@@ -1049,96 +1049,49 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <div class="app-section active" id="section-dashboard">
         <div class="page-hdr">
           <h2>Dashboard</h2>
-          <p>May 2026 — Monthly overview</p>
+          <p id="dashboard-period">Scan your first receipt to get started</p>
         </div>
 
         <div class="kpi-grid">
           <div class="kpi-card g">
             <div class="kpi-label">Total Spent</div>
-            <div class="kpi-value gold-c">$2,847</div>
-            <div class="kpi-trend up">↑ 12% vs last month</div>
+            <div class="kpi-value gold-c" id="kpi-total">$0.00</div>
+            <div class="kpi-trend" id="kpi-total-sub">No expenses yet</div>
           </div>
           <div class="kpi-card gr">
             <div class="kpi-label">Receipts Logged</div>
-            <div class="kpi-value green-c">47</div>
-            <div class="kpi-trend">This month</div>
+            <div class="kpi-value green-c" id="kpi-count">0</div>
+            <div class="kpi-trend" id="kpi-count-sub">This month</div>
           </div>
           <div class="kpi-card g">
             <div class="kpi-label">Tax Deductible</div>
-            <div class="kpi-value gold-c">$1,920</div>
-            <div class="kpi-trend">67% of total</div>
+            <div class="kpi-value gold-c" id="kpi-tax">$0.00</div>
+            <div class="kpi-trend" id="kpi-tax-sub">0% of total</div>
           </div>
           <div class="kpi-card gr">
             <div class="kpi-label">Avg per Receipt</div>
-            <div class="kpi-value green-c">$60</div>
-            <div class="kpi-trend dn">↓ 5% vs last month</div>
+            <div class="kpi-value green-c" id="kpi-avg">$0.00</div>
+            <div class="kpi-trend" id="kpi-avg-sub">No data yet</div>
           </div>
         </div>
 
         <div class="two-col">
           <div class="card">
             <div class="card-hdr">Spending by Category</div>
-            <div class="bar-row">
-              <span class="bar-lbl">Food</span>
-              <div class="bar-track"><div class="bar-fill" style="width:75%;background:var(--gold)"></div></div>
-              <span class="bar-amt">$680</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-lbl">Travel</span>
-              <div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--green)"></div></div>
-              <span class="bar-amt">$500</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-lbl">Office</span>
-              <div class="bar-track"><div class="bar-fill" style="width:40%;background:#8B7030"></div></div>
-              <span class="bar-amt">$360</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-lbl">Software</span>
-              <div class="bar-track"><div class="bar-fill" style="width:28%;background:#C9A84C66"></div></div>
-              <span class="bar-amt">$255</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-lbl">Other</span>
-              <div class="bar-track"><div class="bar-fill" style="width:18%;background:var(--gray2)"></div></div>
-              <span class="bar-amt">$162</span>
+            <div id="chart-bars">
+              <div style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px">
+                <div style="font-size:28px;margin-bottom:10px">📊</div>
+                No data yet — scan a receipt to see your breakdown
+              </div>
             </div>
           </div>
 
           <div class="card">
             <div class="card-hdr">Recent Receipts</div>
-            <div class="rcpt-list">
-              <div class="rcpt-row">
-                <div class="rcpt-ico" style="background:var(--green-dim)">🛒</div>
-                <div class="rcpt-info">
-                  <div class="rcpt-name">Carrefour</div>
-                  <div class="rcpt-meta"><span class="tag tl">Food &amp; Drink</span><span class="rcpt-date">May 18, 2026</span></div>
-                </div>
-                <div class="rcpt-amt">$47.30</div>
-              </div>
-              <div class="rcpt-row">
-                <div class="rcpt-ico" style="background:var(--gold-dim)">✈️</div>
-                <div class="rcpt-info">
-                  <div class="rcpt-name">Qatar Airways</div>
-                  <div class="rcpt-meta"><span class="tag tl">Travel</span><span class="rcpt-date">May 17, 2026</span></div>
-                </div>
-                <div class="rcpt-amt">$320.00</div>
-              </div>
-              <div class="rcpt-row">
-                <div class="rcpt-ico" style="background:var(--green-dim)">☕</div>
-                <div class="rcpt-info">
-                  <div class="rcpt-name">Starbucks</div>
-                  <div class="rcpt-meta"><span class="tag tgr">Food &amp; Drink</span><span class="rcpt-date">May 16, 2026</span></div>
-                </div>
-                <div class="rcpt-amt">$14.50</div>
-              </div>
-              <div class="rcpt-row">
-                <div class="rcpt-ico" style="background:var(--gold-dim)">💻</div>
-                <div class="rcpt-info">
-                  <div class="rcpt-name">Adobe CC</div>
-                  <div class="rcpt-meta"><span class="tag tg">Software &amp; Subscriptions</span><span class="rcpt-date">May 15, 2026</span></div>
-                </div>
-                <div class="rcpt-amt">$54.99</div>
+            <div class="rcpt-list" id="recent-list">
+              <div id="recent-empty" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px">
+                <div style="font-size:28px;margin-bottom:10px">🧾</div>
+                No receipts yet — scan your first receipt!
               </div>
             </div>
           </div>
@@ -1238,25 +1191,11 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
               </tr>
             </thead>
             <tbody id="expenses-tbody">
-              <tr>
-                <td><div class="exp-vendor">Carrefour</div><span class="tag tl">Food &amp; Drink</span></td>
-                <td>May 18, 2026</td>
-                <td style="color:var(--gold);font-weight:700">$47.30</td>
-              </tr>
-              <tr>
-                <td><div class="exp-vendor">Qatar Airways</div><span class="tag tl">Travel</span></td>
-                <td>May 17, 2026</td>
-                <td style="color:var(--gold);font-weight:700">$320.00</td>
-              </tr>
-              <tr>
-                <td><div class="exp-vendor">Starbucks</div><span class="tag tgr">Food &amp; Drink</span></td>
-                <td>May 16, 2026</td>
-                <td style="color:var(--gold);font-weight:700">$14.50</td>
-              </tr>
-              <tr>
-                <td><div class="exp-vendor">Adobe CC</div><span class="tag tg">Software &amp; Subscriptions</span></td>
-                <td>May 15, 2026</td>
-                <td style="color:var(--gold);font-weight:700">$54.99</td>
+              <tr id="expenses-empty">
+                <td colspan="3" style="text-align:center;padding:40px 0;color:var(--white3);font-size:13px">
+                  <div style="font-size:28px;margin-bottom:10px">🧾</div>
+                  No receipts yet — scan your first receipt!
+                </td>
               </tr>
             </tbody>
           </table>
@@ -1756,7 +1695,7 @@ async function saveExpense() {
   const exp = {
     vendor:   document.getElementById('r-vendor').value   || 'Unknown',
     date:     document.getElementById('r-date').value     || new Date().toISOString().split('T')[0],
-    amount:   document.getElementById('r-amount').value   || '—',
+    amount:   document.getElementById('r-amount').value   || '0',
     tax:      document.getElementById('r-tax').value      || '',
     category: document.getElementById('r-category').value,
     payment:  document.getElementById('r-payment').value  || '',
@@ -1778,6 +1717,11 @@ async function saveExpense() {
     }).then(({ error }) => { if (error) console.warn('[Supabase expenses]', error.message); });
   }
 
+  // Remove expenses empty-state row
+  const emptyRow = document.getElementById('expenses-empty');
+  if (emptyRow) emptyRow.remove();
+
+  // Add to expenses table
   const tbody = document.getElementById('expenses-tbody');
   const row   = document.createElement('tr');
   row.innerHTML = `
@@ -1786,6 +1730,28 @@ async function saveExpense() {
     <td style="color:var(--gold);font-weight:700">${exp.amount}</td>`;
   tbody.insertBefore(row, tbody.firstChild);
 
+  // Add to Recent Receipts on dashboard
+  const recentEmpty = document.getElementById('recent-empty');
+  if (recentEmpty) recentEmpty.remove();
+  const recentList = document.getElementById('recent-list');
+  if (recentList) {
+    const rrow = document.createElement('div');
+    rrow.className = 'rcpt-row';
+    rrow.innerHTML = `
+      <div class="rcpt-ico" style="background:var(--gold-dim)">🧾</div>
+      <div class="rcpt-info">
+        <div class="rcpt-name">${exp.vendor}</div>
+        <div class="rcpt-meta"><span class="tag tg">${exp.category}</span><span class="rcpt-date">${exp.date}</span></div>
+      </div>
+      <div class="rcpt-amt">${exp.amount}</div>`;
+    recentList.insertBefore(rrow, recentList.firstChild);
+    // Keep only 5 most recent
+    while (recentList.children.length > 5) recentList.removeChild(recentList.lastChild);
+  }
+
+  // Update KPIs
+  updateDashboardKPIs();
+
   uploadedImage = null;
   document.getElementById('scan-drop').style.display = 'block';
   document.getElementById('preview-area').style.display = 'none';
@@ -1793,6 +1759,65 @@ async function saveExpense() {
 
   showToast('✓ Expense saved!');
   showSection(document.querySelector('[data-section="expenses"]'), 'expenses');
+}
+
+function updateDashboardKPIs() {
+  const total   = expenses.reduce((s, e) => s + (parseFloat(e.amount.replace(/[^0-9.]/g, '')) || 0), 0);
+  const taxSum  = expenses.reduce((s, e) => s + (parseFloat(e.tax.replace(/[^0-9.]/g, ''))    || 0), 0);
+  const count   = expenses.length;
+  const avg     = count ? total / count : 0;
+  const taxPct  = total ? Math.round((taxSum / total) * 100) : 0;
+
+  document.getElementById('kpi-total').textContent      = '$' + total.toFixed(2);
+  document.getElementById('kpi-total-sub').textContent  = count + ' expense' + (count !== 1 ? 's' : '') + ' logged';
+  document.getElementById('kpi-count').textContent      = count;
+  document.getElementById('kpi-count-sub').textContent  = 'This session';
+  document.getElementById('kpi-tax').textContent        = '$' + taxSum.toFixed(2);
+  document.getElementById('kpi-tax-sub').textContent    = taxPct + '% of total';
+  document.getElementById('kpi-avg').textContent        = '$' + avg.toFixed(2);
+  document.getElementById('kpi-avg-sub').textContent    = count ? 'Per receipt' : 'No data yet';
+
+  // Update bar chart
+  updateBarChart();
+}
+
+const BAR_COLORS = {
+  'Food & Drink':               'var(--gold)',
+  'Travel':                     'var(--green)',
+  'Office Supplies':            '#8B7030',
+  'Software & Subscriptions':   '#C9A84C88',
+  'Marketing':                  '#5B9B5B',
+  'Utilities':                  '#7A7A7A',
+  'Other':                      'var(--gray2)',
+};
+
+function updateBarChart() {
+  const chart = document.getElementById('chart-bars');
+  if (!chart) return;
+
+  // Aggregate by category
+  const totals = {};
+  expenses.forEach(e => {
+    const amt = parseFloat(e.amount.replace(/[^0-9.]/g, '')) || 0;
+    totals[e.category] = (totals[e.category] || 0) + amt;
+  });
+
+  const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) {
+    chart.innerHTML = `<div style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px">
+      <div style="font-size:28px;margin-bottom:10px">📊</div>
+      No data yet — scan a receipt to see your breakdown
+    </div>`;
+    return;
+  }
+
+  const max = entries[0][1];
+  chart.innerHTML = entries.map(([cat, amt]) => `
+    <div class="bar-row">
+      <span class="bar-lbl" style="width:90px;font-size:11px">${cat.split(' ')[0]}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((amt/max)*100)}%;background:${BAR_COLORS[cat] || 'var(--gold)'}"></div></div>
+      <span class="bar-amt">$${amt.toFixed(0)}</span>
+    </div>`).join('');
 }
 
 /* ─────────────────────────────
