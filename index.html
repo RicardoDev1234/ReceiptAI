@@ -1061,7 +1061,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <div class="sidebar-item" data-section="billing" onclick="showSection(this,'billing')">
         <span class="si-icon">💳</span> Billing
       </div>
-      <div class="sidebar-item" data-section="admin" onclick="showSection(this,'admin')">
+      <div class="sidebar-item" data-section="admin" onclick="showSection(this,'admin');loadAdminStats()">
         <span class="si-icon">⚙️</span> Admin
       </div>
 
@@ -1286,28 +1286,24 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
         <div class="admin-kpis">
           <div class="admin-kpi">
             <div class="ak-label">Total Users</div>
-            <div class="ak-val">284</div>
-            <div class="ak-chg">↑ 18 new this week</div>
+            <div class="ak-val" id="admin-total-users">—</div>
+            <div class="ak-chg" id="admin-total-expenses">— expenses logged</div>
           </div>
           <div class="admin-kpi">
-            <div class="ak-label">Monthly Revenue</div>
-            <div class="ak-val" style="color:var(--gold)">$1,847</div>
-            <div class="ak-chg">↑ 22% vs last month</div>
+            <div class="ak-label">Est. Monthly Revenue</div>
+            <div class="ak-val" id="admin-revenue" style="color:var(--gold)">—</div>
+            <div class="ak-chg">Pro subscribers × $7.99</div>
           </div>
           <div class="admin-kpi">
             <div class="ak-label">Pro Subscribers</div>
-            <div class="ak-val">142</div>
-            <div class="ak-chg">↑ 12 this week</div>
+            <div class="ak-val" id="admin-pro-users">—</div>
+            <div class="ak-chg">Paying users</div>
           </div>
           <div class="admin-kpi">
-            <div class="ak-label">Churn Rate</div>
-            <div class="ak-val" style="color:var(--green)">2.1%</div>
-            <div class="ak-chg">↓ Healthy</div>
+            <div class="ak-label">Free Trial Users</div>
+            <div class="ak-val" id="admin-free-users" style="color:var(--green)">—</div>
+            <div class="ak-chg">Conversion opportunity</div>
           </div>
-        </div>
-
-        <div style="background:var(--black3);border:1px solid var(--border);border-radius:11px;padding:12px 18px;margin-bottom:18px;font-size:12.5px;color:var(--white3)">
-          ⚠️ Admin data is a static placeholder — live analytics require a backend dashboard integration.
         </div>
 
         <div class="card" style="padding:0;overflow:hidden">
@@ -1316,37 +1312,10 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
           </div>
           <table class="exp-table">
             <thead>
-              <tr><th>Name</th><th>Email</th><th>Plan</th><th>Status</th><th>Joined</th></tr>
+              <tr><th>Name</th><th>Email</th><th>Plan</th><th>Joined</th></tr>
             </thead>
-            <tbody>
-              <tr>
-                <td style="color:var(--white);font-weight:500">Ahmed Al-Rashid</td>
-                <td>ahmed@corp.qa</td>
-                <td><span class="tag tl">Business</span></td>
-                <td><span class="dot on"></span>Active</td>
-                <td>May 18</td>
-              </tr>
-              <tr>
-                <td style="color:var(--white);font-weight:500">Sarah Mitchell</td>
-                <td>sarah@studio.com</td>
-                <td><span class="tag tg">Pro</span></td>
-                <td><span class="dot on"></span>Active</td>
-                <td>May 17</td>
-              </tr>
-              <tr>
-                <td style="color:var(--white);font-weight:500">James Okafor</td>
-                <td>james@freelance.io</td>
-                <td><span class="tag tgr">Free Trial</span></td>
-                <td><span class="dot on"></span>Active</td>
-                <td>May 16</td>
-              </tr>
-              <tr>
-                <td style="color:var(--white);font-weight:500">Lena Müller</td>
-                <td>lena@gmbh.de</td>
-                <td><span class="tag tg">Pro</span></td>
-                <td><span class="dot off"></span>Churned</td>
-                <td>May 10</td>
-              </tr>
+            <tbody id="admin-users-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -1418,7 +1387,8 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 ───────────────────────────── */
 const RAIL = 'https://receiptai-production.up.railway.app';
 
-let userPlan = 'free'; // 'free' | 'pro' — updated after auth/checkout
+let userPlan     = 'free'; // 'free' | 'pro' — updated after auth/checkout
+let sessionToken = null;   // Supabase JWT — sent as Bearer token to backend API
 
 /* ─────────────────────────────
    SUPABASE CLIENT
@@ -1447,7 +1417,7 @@ function showPage(page) {
   const nav = document.getElementById('nav-links');
   if (page === 'app') {
     nav.innerHTML = `
-      <button class="nav-btn ghost" onclick="showSection(document.querySelector('[data-section=admin]'),'admin')">⚙ Admin</button>
+      <button class="nav-btn ghost" onclick="showSection(document.querySelector('[data-section=admin]'),'admin');loadAdminStats()">⚙ Admin</button>
       <button class="nav-btn primary" onclick="handleSignOut()">Sign Out</button>`;
   } else {
     nav.innerHTML = `
@@ -1461,7 +1431,8 @@ function showApp() { showPage('app'); }
 async function handleSignOut() {
   const client = sb();
   if (client) await client.auth.signOut();
-  currentUser = null;
+  currentUser  = null;
+  sessionToken = null;
   expenses = [];
   setUserPlan('free');
 
@@ -1582,7 +1553,8 @@ async function submitLogin(e) {
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Sign in failed.');
-    currentUser = json.user;
+    currentUser  = json.user;
+    sessionToken = json.session?.access_token || null;
     const client = sb();
     if (client && json.session) await client.auth.setSession(json.session);
     hideLoading();
@@ -1620,7 +1592,8 @@ async function submitSignup(e) {
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Sign up failed.');
-    currentUser = json.user;
+    currentUser  = json.user;
+    sessionToken = json.session?.access_token || null;
     const client = sb();
     if (client && json.session) await client.auth.setSession(json.session);
     hideLoading();
@@ -1775,18 +1748,13 @@ async function saveExpense() {
   };
   expenses.push(exp);
 
-  const client = sb();
-  if (client && currentUser) {
-    client.from('expenses').insert({
-      user_id:  currentUser.id,
-      vendor:   exp.vendor,
-      date:     exp.date,
-      amount:   parseFloat(exp.amount.replace(/[^0-9.]/g, '')) || 0,
-      tax:      parseFloat(exp.tax.replace(/[^0-9.]/g, ''))    || 0,
-      category: exp.category,
-      payment:  exp.payment,
-      notes:    exp.notes,
-    }).then(({ error }) => { if (error) console.warn('[Supabase expenses]', error.message); });
+  if (sessionToken) {
+    fetch(`${RAIL}/api/expenses`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+      body:    JSON.stringify(exp),
+    }).then(r => { if (!r.ok) r.json().then(e => console.warn('[saveExpense]', e.error)); })
+      .catch(e => console.warn('[saveExpense]', e.message));
   }
 
   // Remove expenses empty-state row
@@ -1990,16 +1958,19 @@ async function loadUserProfile() {
 }
 
 async function loadExpenses() {
-  const client = sb();
-  if (!client || !currentUser) return;
+  if (!sessionToken) return;
 
-  const { data, error } = await client
-    .from('expenses')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .order('date', { ascending: false });
+  let data;
+  try {
+    const res = await fetch(`${RAIL}/api/expenses`, {
+      headers: { 'Authorization': `Bearer ${sessionToken}` },
+    });
+    if (!res.ok) { console.warn('[loadExpenses] HTTP', res.status); return; }
+    data = await res.json();
+  } catch (err) {
+    console.warn('[loadExpenses]', err.message); return;
+  }
 
-  if (error) { console.warn('[loadExpenses]', error.message); return; }
   if (!data || !data.length) return;
 
   document.getElementById('expenses-empty')?.remove();
@@ -2054,6 +2025,47 @@ function filterExpenses(q) {
 }
 
 /* ─────────────────────────────
+   ADMIN STATS
+───────────────────────────── */
+async function loadAdminStats() {
+  const tbody = document.getElementById('admin-users-tbody');
+  if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px">Loading…</td></tr>`;
+
+  try {
+    const res  = await fetch(`${RAIL}/api/admin/stats`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('admin-total-users',    d.totalUsers);
+    set('admin-revenue',        '$' + d.revenue);
+    set('admin-pro-users',      d.proUsers);
+    set('admin-free-users',     d.totalUsers - d.proUsers);
+    set('admin-total-expenses', d.totalExpenses + ' expenses logged');
+
+    if (tbody && d.recentUsers?.length) {
+      tbody.innerHTML = d.recentUsers.map(u => {
+        const date = u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+        const planTag = u.plan === 'pro'
+          ? `<span class="tag tg">Pro</span>`
+          : `<span class="tag tgr">Free Trial</span>`;
+        return `<tr>
+          <td style="color:var(--white);font-weight:500">${esc(u.full_name || 'Unknown')}</td>
+          <td>${esc(u.email || '')}</td>
+          <td>${planTag}</td>
+          <td>${date}</td>
+        </tr>`;
+      }).join('');
+    } else if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px">No users yet.</td></tr>`;
+    }
+  } catch (err) {
+    console.error('[loadAdminStats]', err.message);
+    if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px 0;color:#e07070;font-size:13px">Failed to load stats: ${esc(err.message)}</td></tr>`;
+  }
+}
+
+/* ─────────────────────────────
    LOADING + TOAST
 ───────────────────────────── */
 function showLoading(txt) {
@@ -2080,7 +2092,8 @@ function showToast(msg, isErr) {
   const client = sb();
   if (client) {
     const { data } = await client.auth.getSession();
-    currentUser = data?.session?.user || null;
+    currentUser  = data?.session?.user        || null;
+    sessionToken = data?.session?.access_token || null;
 
     if (currentUser) {
       showApp();
@@ -2089,7 +2102,8 @@ function showToast(msg, isErr) {
     }
 
     client.auth.onAuthStateChange((_, session) => {
-      currentUser = session?.user || null;
+      currentUser  = session?.user         || null;
+      sessionToken = session?.access_token || null;
     });
   }
 
