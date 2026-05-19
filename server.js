@@ -1,17 +1,21 @@
 'use strict';
 require('dotenv').config();
 
-const express   = require('express');
-const path      = require('path');
-const fs        = require('fs');
-const Stripe    = require('stripe');
-const Anthropic = require('@anthropic-ai/sdk');
+const express        = require('express');
+const cors           = require('cors');
+const path           = require('path');
+const fs             = require('fs');
+const Stripe         = require('stripe');
+const Anthropic      = require('@anthropic-ai/sdk');
+const { createClient } = require('@supabase/supabase-js');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
+/* ── Lazy service clients ── */
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error('STRIPE_SECRET_KEY is not set in .env');
@@ -24,15 +28,70 @@ function getAnthropic() {
   return new Anthropic({ apiKey: key });
 }
 
-/* ── Serve index.html with injected public config ── */
+function getSupabase() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error('SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set in .env');
+  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+}
+
+/* ── GET / — serve index.html with injected public config ── */
 app.get('/', (req, res) => {
   const html      = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   const injection = `<script>
-window.SUPABASE_URL          = ${JSON.stringify(process.env.SUPABASE_URL           || '')};
-window.SUPABASE_ANON_KEY     = ${JSON.stringify(process.env.SUPABASE_ANON_KEY      || '')};
-window.STRIPE_PUBLISHABLE_KEY= ${JSON.stringify(process.env.STRIPE_PUBLISHABLE_KEY || '')};
+window.SUPABASE_URL           = ${JSON.stringify(process.env.SUPABASE_URL           || '')};
+window.SUPABASE_ANON_KEY      = ${JSON.stringify(process.env.SUPABASE_ANON_KEY      || '')};
+window.STRIPE_PUBLISHABLE_KEY = ${JSON.stringify(process.env.STRIPE_PUBLISHABLE_KEY || '')};
 </script>`;
   res.send(html.replace('</head>', injection + '\n</head>'));
+});
+
+/* ── POST /api/signup ── */
+app.post('/api/signup', async (req, res) => {
+  try {
+    const { email, password, fullName } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password are required.' });
+
+    const supabase = getSupabase();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName || '' } },
+    });
+    if (error) throw error;
+
+    if (data.user) {
+      const { error: dbErr } = await supabase.from('users').insert({
+        id:          data.user.id,
+        email,
+        full_name:   fullName || '',
+        plan:        'free_trial',
+        trial_start: new Date().toISOString(),
+      });
+      if (dbErr) console.warn('[Supabase users insert]', dbErr.message);
+    }
+
+    res.json({ user: data.user, session: data.session });
+  } catch (err) {
+    console.error('[Signup]', err.message);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/* ── POST /api/login ── */
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password are required.' });
+
+    const { data, error } = await getSupabase().auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    res.json({ user: data.user, session: data.session });
+  } catch (err) {
+    console.error('[Login]', err.message);
+    res.status(401).json({ error: err.message });
+  }
 });
 
 /* ── POST /api/create-checkout-session ── */
@@ -48,7 +107,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 
     const baseUrl = process.env.APP_URL || `http://localhost:${PORT}`;
-
     const session = await getStripe().checkout.sessions.create({
       mode:                 'subscription',
       payment_method_types: ['card'],
@@ -100,8 +158,8 @@ app.post('/api/analyze-receipt', async (req, res) => {
       }],
     });
 
-    const text   = msg.content.map(b => b.text || '').join('');
-    const clean  = text.replace(/```json|```/g, '').trim();
+    const text  = msg.content.map(b => b.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
     res.json(JSON.parse(clean));
   } catch (err) {
     console.error('[Anthropic]', err.message);

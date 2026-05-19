@@ -1316,8 +1316,14 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 
 <script>
 /* ─────────────────────────────
+   RAILWAY BACKEND BASE URL
+───────────────────────────── */
+const RAIL = 'https://receiptai-production.up.railway.app';
+
+/* ─────────────────────────────
    SUPABASE CLIENT
    Initialised lazily — window.SUPABASE_URL is injected by server.js
+   Used only for session restore and expense persistence.
 ───────────────────────────── */
 let _sb = null;
 function sb() {
@@ -1416,7 +1422,7 @@ function setErr(inputId, errId, show) {
 function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
 /* ─────────────────────────────
-   LOGIN — Supabase auth
+   LOGIN — via Railway backend
 ───────────────────────────── */
 async function submitLogin(e) {
   e.preventDefault();
@@ -1429,12 +1435,16 @@ async function submitLogin(e) {
 
   showLoading('Signing in…');
   try {
+    const res  = await fetch(`${RAIL}/api/login`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password: pass }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Sign in failed.');
+    currentUser = json.user;
     const client = sb();
-    if (client) {
-      const { data, error } = await client.auth.signInWithPassword({ email, password: pass });
-      if (error) throw error;
-      currentUser = data.user;
-    }
+    if (client && json.session) await client.auth.setSession(json.session);
     hideLoading();
     showApp();
   } catch (err) {
@@ -1444,10 +1454,7 @@ async function submitLogin(e) {
 }
 
 /* ─────────────────────────────
-   SIGNUP — Supabase auth + users table
-   Required Supabase table:
-     public.users (id uuid, email text, full_name text, plan text, trial_start timestamptz)
-   Enable RLS and add: INSERT policy for authenticated users (auth.uid() = id)
+   SIGNUP — via Railway backend
 ───────────────────────────── */
 async function submitSignup(e) {
   e.preventDefault();
@@ -1456,35 +1463,24 @@ async function submitSignup(e) {
   const pass    = document.getElementById('su-pass').value;
   const confirm = document.getElementById('su-confirm').value;
   let ok = true;
-  ok = setErr('su-name',    'su-name-err',    name.length < 2)                    && ok;
-  ok = setErr('su-email',   'su-email-err',   !isEmail(email))                    && ok;
-  ok = setErr('su-pass',    'su-pass-err',    pass.length < 8)                    && ok;
-  ok = setErr('su-confirm', 'su-confirm-err', pass !== confirm || pass === '')     && ok;
+  ok = setErr('su-name',    'su-name-err',    name.length < 2)                 && ok;
+  ok = setErr('su-email',   'su-email-err',   !isEmail(email))                 && ok;
+  ok = setErr('su-pass',    'su-pass-err',    pass.length < 8)                 && ok;
+  ok = setErr('su-confirm', 'su-confirm-err', pass !== confirm || pass === '') && ok;
   if (!ok) return;
 
   showLoading('Creating your account…');
   try {
+    const res  = await fetch(`${RAIL}/api/signup`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password: pass, fullName: name }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Sign up failed.');
+    currentUser = json.user;
     const client = sb();
-    if (client) {
-      const { data, error } = await client.auth.signUp({
-        email,
-        password: pass,
-        options: { data: { full_name: name } },
-      });
-      if (error) throw error;
-      currentUser = data.user;
-
-      if (data.user) {
-        const { error: dbErr } = await client.from('users').insert({
-          id:          data.user.id,
-          email,
-          full_name:   name,
-          plan:        'free_trial',
-          trial_start: new Date().toISOString(),
-        });
-        if (dbErr) console.warn('[Supabase users insert]', dbErr.message);
-      }
-    }
+    if (client && json.session) await client.auth.setSession(json.session);
     hideLoading();
     showApp();
   } catch (err) {
@@ -1507,7 +1503,7 @@ async function startCheckout() {
       email = data?.user?.email || '';
     }
 
-    const res = await fetch('/api/create-checkout-session', {
+    const res = await fetch(`${RAIL}/api/create-checkout-session`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ plan: isYearly ? 'yearly' : 'monthly', email }),
@@ -1586,7 +1582,7 @@ async function analyzeReceipt() {
     const base64    = uploadedImage.split(',')[1];
     const mediaType = uploadedImage.split(';')[0].split(':')[1];
 
-    const res = await fetch('/api/analyze-receipt', {
+    const res = await fetch(`${RAIL}/api/analyze-receipt`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ base64, mediaType }),
