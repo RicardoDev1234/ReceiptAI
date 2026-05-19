@@ -822,7 +822,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
   <div class="section">
     <div class="section-eyebrow">Pricing</div>
     <div class="section-title">Simple, honest <span class="gold">pricing</span></div>
-    <div class="section-sub">Start free for 7 days. Upgrade anytime. Cancel with one click — no questions asked.</div>
+    <div class="section-sub">One plan. Full access. Start free — no card needed.</div>
     <div class="toggle-row">
       <span class="toggle-lbl on" id="lbl-monthly">Monthly</span>
       <div class="toggle-track" id="billing-toggle" onclick="toggleBilling()">
@@ -831,39 +831,24 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <span class="toggle-lbl" id="lbl-yearly">Yearly</span>
       <span class="save-badge" id="save-badge" style="display:none">Save 37%</span>
     </div>
-    <div class="pricing-grid">
-      <!-- FREE TRIAL -->
-      <div class="pricing-card">
-        <div class="plan-name">Free Trial</div>
-        <div class="plan-price"><sup>$</sup>0<sub>/mo</sub></div>
-        <div class="plan-note" id="trial-note">7 days free — then $7.99/mo</div>
-        <div class="plan-divider"></div>
-        <ul class="plan-features">
-          <li><span class="chk">✓</span>Full access for 7 days</li>
-          <li><span class="chk">✓</span>Unlimited receipts</li>
-          <li><span class="chk">✓</span>AI scanning &amp; extraction</li>
-          <li><span class="chk">✓</span>Dashboard &amp; reports</li>
-          <li><span class="chk">✓</span>CSV export</li>
-          <li><span class="chk">✓</span>No credit card to start</li>
-        </ul>
-        <button class="plan-btn outline-btn" onclick="showPage('signup')">Start Free Trial</button>
-      </div>
-      <!-- PRO -->
+    <div class="pricing-grid" style="max-width:420px">
       <div class="pricing-card popular">
-        <div class="popular-badge">Most Popular</div>
+        <div class="popular-badge">7-Day Free Trial</div>
         <div class="plan-name">Pro</div>
         <div class="plan-price" id="pro-price"><sup>$</sup>7.99<sub>/mo</sub></div>
         <div class="plan-note" id="pro-note">Billed monthly · Cancel anytime</div>
+        <p style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:22px">Start with a free 7-day trial — no credit card required</p>
         <div class="plan-divider"></div>
         <ul class="plan-features">
-          <li><span class="chk">✓</span>Unlimited receipts</li>
-          <li><span class="chk">✓</span>Advanced dashboard</li>
+          <li><span class="chk">✓</span>Unlimited receipts &amp; AI scanning</li>
+          <li><span class="chk">✓</span>Smart dashboard &amp; analytics</li>
           <li><span class="chk">✓</span>Tax report generator</li>
+          <li><span class="chk">✓</span>Excel &amp; CSV export</li>
           <li><span class="chk">✓</span>Multi-currency support</li>
-          <li><span class="chk">✓</span>Priority support</li>
-          <li><span class="chk">✓</span>All future features</li>
+          <li><span class="chk">✓</span>Priority support &amp; all future features</li>
         </ul>
-        <button class="plan-btn gold-btn" onclick="startCheckout()">Start 7-Day Free Trial</button>
+        <button class="plan-btn gold-btn" onclick="startCheckout()">Start Free Trial →</button>
+        <p style="font-size:11.5px;color:var(--white3);text-align:center;margin-top:14px">After 7 days, $7.99/mo or $59.99/year. Cancel anytime.</p>
       </div>
     </div>
   </div>
@@ -1473,7 +1458,6 @@ function applyBillingState() {
   const sb = document.getElementById('save-badge');  if (sb) sb.style.display = isYearly ? 'inline-block' : 'none';
   const pp = document.getElementById('pro-price');
   const pn = document.getElementById('pro-note');
-  const tn = document.getElementById('trial-note');
   // Billing page elements
   const bt  = document.getElementById('b-billing-toggle');
   if (bt) bt.classList.toggle('on', isYearly);
@@ -1487,14 +1471,12 @@ function applyBillingState() {
   if (isYearly) {
     if (pp) pp.innerHTML = '<sup>$</sup>4.99<sub>/mo</sub>';
     if (pn) pn.textContent = 'Billed $59.99/year · Save $35.89';
-    if (tn) tn.textContent = '7 days free — then $59.99/year';
     if (bpp) bpp.innerHTML = '<sup>$</sup>4.99<sub>/mo</sub>';
     if (bpn) bpn.textContent = 'Billed $59.99/year · Save $35.89';
     if (btn) btn.textContent = '7 days free — then $59.99/year';
   } else {
     if (pp) pp.innerHTML = '<sup>$</sup>7.99<sub>/mo</sub>';
     if (pn) pn.textContent = 'Billed monthly · Cancel anytime';
-    if (tn) tn.textContent = '7 days free — then $7.99/mo';
     if (bpp) bpp.innerHTML = '<sup>$</sup>7.99<sub>/mo</sub>';
     if (bpn) bpn.textContent = 'Billed monthly · Cancel anytime';
     if (btn) btn.textContent = '7 days free — then $7.99/mo';
