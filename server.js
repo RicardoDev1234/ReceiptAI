@@ -12,7 +12,29 @@ const { createClient } = require('@supabase/supabase-js');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+const ALLOWED_ORIGINS = [
+  'https://receipt-ai-coral.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5000',
+];
+
+const corsOptions = {
+  origin: (origin, cb) => {
+    // Allow requests with no origin (curl, Postman, server-to-server)
+    if (!origin) return cb(null, true);
+    if (ALLOWED_ORIGINS.includes(origin) || /\.vercel\.app$/.test(origin)) {
+      return cb(null, true);
+    }
+    cb(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+
+// Handle preflight for all routes
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '20mb' }));
 
 /* ── Lazy service clients ── */
@@ -34,6 +56,9 @@ function getSupabase() {
   if (!url || !key) throw new Error('SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set in .env');
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
+
+/* ── GET /health — Railway uptime check ── */
+app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
 /* ── GET / — serve index.html with injected public config ── */
 app.get('/', (req, res) => {
