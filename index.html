@@ -586,7 +586,11 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
   font-weight: 700; margin-bottom: 8px;
 }
 .scan-drop p { font-size: 13.5px; color: var(--white2); font-weight: 300; margin-bottom: 24px; }
-#file-input { display: none; }
+#file-input, #camera-input { display: none; }
+.scan-btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-camera { background: transparent; border: 1.5px solid var(--gold); color: var(--gold); padding: 11px 26px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-camera:hover { background: var(--gold-dim); }
+@media (max-width: 480px) { .scan-btn-row { flex-direction: column; align-items: center; } .scan-btn-row button { width: 100%; max-width: 260px; } }
 .preview-img {
   width: 100%; max-height: 290px; object-fit: contain;
   border-radius: 14px; border: 1px solid var(--border); margin-bottom: 20px;
@@ -1112,14 +1116,21 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
           ondrop="handleDrop(event)">
           <div class="sd-icon">📸</div>
           <h3>Drop your receipt here</h3>
-          <p>Supports JPG, PNG, PDF — any receipt from any store worldwide</p>
-          <button class="btn-gold" style="border:none"
-            onclick="event.stopPropagation();document.getElementById('file-input').click()">
-            Upload Receipt
-          </button>
+          <p>Supports JPG, PNG — any receipt from any store worldwide</p>
+          <div class="scan-btn-row">
+            <button class="btn-gold" style="border:none"
+              onclick="event.stopPropagation();document.getElementById('file-input').click()">
+              Upload Receipt
+            </button>
+            <button class="btn-camera"
+              onclick="event.stopPropagation();document.getElementById('camera-input').click()">
+              📷 Take Photo
+            </button>
+          </div>
         </div>
 
-        <input type="file" id="file-input" accept="image/*,.pdf" onchange="handleFile(this)"/>
+        <input type="file" id="file-input" accept="image/*" onchange="handleFile(this)"/>
+        <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleFile(this)"/>
 
         <div id="preview-area" style="display:none">
           <img id="preview-img" class="preview-img" src="" alt="Receipt preview"/>
