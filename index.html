@@ -1224,19 +1224,19 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
           <p>Generate reports ready for your accountant</p>
         </div>
         <div class="report-cards">
-          <div class="report-card" onclick="showToast('Generating monthly report…')">
+          <div class="report-card locked" id="rc-monthly" onclick="requirePro()">
             <div class="ri">📅</div>
-            <h3>Monthly Report</h3>
+            <h3>Monthly Report <span class="pro-badge">🔒 Pro</span></h3>
             <p>All expenses for a selected month, organized by category with totals and tax breakdowns.</p>
           </div>
-          <div class="report-card" onclick="showToast('Generating annual tax report…')">
+          <div class="report-card locked" id="rc-annual" onclick="requirePro()">
             <div class="ri">📆</div>
-            <h3>Annual Tax Report</h3>
+            <h3>Annual Tax Report <span class="pro-badge">🔒 Pro</span></h3>
             <p>Full year breakdown — perfect to hand to your accountant at tax time.</p>
           </div>
-          <div class="report-card" onclick="showToast('Generating category report…')">
+          <div class="report-card locked" id="rc-category" onclick="requirePro()">
             <div class="ri">🗂</div>
-            <h3>By Category</h3>
+            <h3>By Category <span class="pro-badge">🔒 Pro</span></h3>
             <p>Deep dive into any spending category across any time period you choose.</p>
           </div>
           <div class="report-card" onclick="exportCSV()">
@@ -1860,24 +1860,30 @@ function exportCSV() {
 /* ─────────────────────────────
    EXPORT EXCEL (Pro)
 ───────────────────────────── */
-function setUserPlan(plan) {
-  userPlan = plan;
-  const card = document.getElementById('excel-card');
-  if (!card) return;
-  if (plan === 'pro') {
-    card.classList.remove('locked');
-    card.querySelector('.pro-badge').textContent = '✓ Pro';
-  } else {
-    card.classList.add('locked');
-    card.querySelector('.pro-badge').textContent = '🔒 Pro';
+function requirePro() {
+  if (userPlan !== 'pro') {
+    alert('🔒 Pro feature — upgrade to unlock.\nGo to Billing to upgrade your plan.');
   }
 }
 
+function setUserPlan(plan) {
+  userPlan = plan;
+  const proCards = ['rc-monthly', 'rc-annual', 'rc-category', 'excel-card'];
+  proCards.forEach(id => {
+    const card = document.getElementById(id);
+    if (!card) return;
+    if (plan === 'pro') {
+      card.classList.remove('locked');
+      card.querySelector('.pro-badge').textContent = '✓ Pro';
+    } else {
+      card.classList.add('locked');
+      card.querySelector('.pro-badge').textContent = '🔒 Pro';
+    }
+  });
+}
+
 function exportExcel() {
-  if (userPlan !== 'pro') {
-    alert('🔒 Pro feature — upgrade to unlock.\nGo to Billing to upgrade your plan.');
-    return;
-  }
+  if (userPlan !== 'pro') { requirePro(); return; }
   if (!expenses.length) { showToast('No expenses to export yet.', true); return; }
 
   const wb = XLSX.utils.book_new();
