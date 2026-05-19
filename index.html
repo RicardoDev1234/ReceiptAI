@@ -455,6 +455,52 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 .auth-footer a:hover { text-decoration: underline; }
 
 /* ═══════════════════════════════════════
+   LEGAL PAGES (Privacy & Terms)
+═══════════════════════════════════════ */
+.legal-wrap {
+  max-width: 760px; margin: 0 auto; padding: 60px 24px 100px;
+}
+.legal-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--gold); font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; background: none;
+  padding: 0; margin-bottom: 40px; opacity: .85;
+  transition: opacity .2s;
+}
+.legal-back:hover { opacity: 1; }
+.legal-logo {
+  font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+.legal-title {
+  font-size: 34px; font-weight: 800; color: var(--white);
+  margin-bottom: 6px; line-height: 1.2;
+}
+.legal-date { font-size: 13px; color: var(--white3); margin-bottom: 48px; }
+.legal-section { margin-bottom: 36px; }
+.legal-section h2 {
+  font-size: 16px; font-weight: 700; color: var(--gold);
+  text-transform: uppercase; letter-spacing: .8px;
+  margin-bottom: 12px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border2);
+}
+.legal-section p {
+  font-size: 15px; color: var(--white2); line-height: 1.75;
+  margin-bottom: 10px; font-weight: 300;
+}
+.legal-section ul {
+  padding-left: 20px; margin: 8px 0 10px;
+}
+.legal-section ul li {
+  font-size: 15px; color: var(--white2); line-height: 1.75;
+  margin-bottom: 6px; font-weight: 300;
+}
+.legal-section strong { color: var(--white); font-weight: 600; }
+.legal-section a { color: var(--gold); }
+
+/* ═══════════════════════════════════════
    APP DASHBOARD
 ═══════════════════════════════════════ */
 .app-layout { display: flex; height: calc(100vh - 66px); overflow: hidden; }
@@ -904,9 +950,170 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
   <footer>
     <div class="footer-logo">ReceiptAI</div>
     <p style="margin-top:8px">© 2026 ReceiptAI · Built for small businesses worldwide.</p>
+    <p style="margin-top:14px">
+      <a onclick="showPage('privacy')" style="color:var(--gold);cursor:pointer;font-size:13px;font-weight:500;text-decoration:none">Privacy Policy</a>
+      <span style="color:var(--white3);margin:0 10px">·</span>
+      <a onclick="showPage('terms')" style="color:var(--gold);cursor:pointer;font-size:13px;font-weight:500;text-decoration:none">Terms of Service</a>
+    </p>
   </footer>
 
 </div><!-- /landing -->
+
+
+<!-- ═══════════════════════════════════════
+     PRIVACY POLICY
+═══════════════════════════════════════ -->
+<div class="page" id="page-privacy">
+  <div class="legal-wrap">
+    <button class="legal-back" onclick="showPage('landing')">← Back to ReceiptAI</button>
+    <div class="legal-logo">ReceiptAI</div>
+    <div class="legal-title">Privacy Policy</div>
+    <div class="legal-date">Last updated: May 2026</div>
+
+    <div class="legal-section">
+      <h2>1. Information We Collect</h2>
+      <p>When you use ReceiptAI, we collect the following information:</p>
+      <ul>
+        <li><strong>Account information</strong> — your name, email address, and password when you create an account.</li>
+        <li><strong>Expense records</strong> — vendor names, dates, amounts, categories, payment methods, and notes that you log.</li>
+        <li><strong>Receipt images</strong> — photos or files you upload for AI analysis. Images are transmitted to our AI provider for processing and are not stored permanently on our servers.</li>
+        <li><strong>Country</strong> — the country you select at signup, used to personalise your dashboard.</li>
+        <li><strong>Billing information</strong> — handled entirely by Stripe. We never see or store your card details.</li>
+      </ul>
+    </div>
+
+    <div class="legal-section">
+      <h2>2. How We Use Your Information</h2>
+      <p>We use the information we collect solely to provide and improve the ReceiptAI service:</p>
+      <ul>
+        <li>To authenticate you and keep your account secure.</li>
+        <li>To store and display your expense records across sessions.</li>
+        <li>To process receipt images through AI and extract expense data.</li>
+        <li>To manage your subscription and process payments.</li>
+        <li>To send account-related emails (verification, billing receipts).</li>
+      </ul>
+      <p>We do <strong>not</strong> use your data for advertising, profiling, or any purpose beyond operating the service.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>3. Third-Party Services</h2>
+      <p>ReceiptAI relies on the following trusted third-party providers to deliver the service:</p>
+      <ul>
+        <li><strong>Supabase</strong> — your account data and expense records are stored securely in Supabase's cloud database. Data is encrypted at rest and in transit.</li>
+        <li><strong>Stripe</strong> — all payment processing and subscription management is handled by Stripe. We never store your payment card information.</li>
+        <li><strong>Anthropic (Claude AI)</strong> — receipt images you upload are sent to Anthropic's API to extract expense information. Images are not retained by Anthropic beyond the duration of the API request.</li>
+      </ul>
+      <p>Each of these providers operates under their own privacy policies and security standards.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>4. Data Sharing &amp; Sale</h2>
+      <p>We <strong>never sell, rent, or trade your personal data</strong> to any third party. We only share data with the service providers listed above, and only to the extent necessary to operate ReceiptAI.</p>
+      <p>We may disclose your information if required by law or to protect the rights, property, or safety of ReceiptAI or its users.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>5. Data Retention</h2>
+      <p>We retain your account and expense data for as long as your account is active. If you delete your account, your data is permanently removed from our systems within 30 days.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>6. Deleting Your Account</h2>
+      <p>You can request deletion of your account and all associated data at any time by emailing <a href="mailto:support@receiptai.app">support@receiptai.app</a>. Include the email address associated with your account. We will process your request within 7 business days.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>7. Security</h2>
+      <p>We take reasonable technical and organisational measures to protect your data, including TLS encryption in transit and encrypted storage via Supabase. No method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>8. Contact</h2>
+      <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:support@receiptai.app">support@receiptai.app</a>.</p>
+    </div>
+  </div>
+</div><!-- /privacy -->
+
+
+<!-- ═══════════════════════════════════════
+     TERMS OF SERVICE
+═══════════════════════════════════════ -->
+<div class="page" id="page-terms">
+  <div class="legal-wrap">
+    <button class="legal-back" onclick="showPage('landing')">← Back to ReceiptAI</button>
+    <div class="legal-logo">ReceiptAI</div>
+    <div class="legal-title">Terms of Service</div>
+    <div class="legal-date">Last updated: May 2026</div>
+
+    <div class="legal-section">
+      <h2>1. Acceptance of Terms</h2>
+      <p>By creating an account or using ReceiptAI, you agree to these Terms of Service. If you do not agree, please do not use the service.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>2. Description of Service</h2>
+      <p>ReceiptAI is an AI-powered expense tracking service that allows you to scan receipts, log expenses, generate reports, and manage business costs. The service is provided <strong>"as-is"</strong> without warranties of any kind, express or implied.</p>
+      <p>We do not guarantee that the service will be uninterrupted, error-free, or that AI-extracted data will be 100% accurate. You are responsible for verifying all extracted expense information.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>3. Subscription &amp; Pricing</h2>
+      <p>ReceiptAI offers the following subscription plans:</p>
+      <ul>
+        <li><strong>Pro Monthly</strong> — $7.99 per month, billed monthly.</li>
+        <li><strong>Pro Yearly</strong> — $59.99 per year, billed annually (save ~37%).</li>
+      </ul>
+      <p>All prices are in USD. Applicable taxes may be added depending on your country.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>4. Free Trial</h2>
+      <p>New Pro subscribers receive a <strong>7-day free trial</strong>. You will not be charged during the trial period. If you cancel before the trial ends, you will not be billed. After the trial, your chosen subscription plan begins automatically.</p>
+      <p>Free trials are available to new customers only and may not be combined with other offers.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>5. Cancellation Policy</h2>
+      <p>You may cancel your subscription at any time through the Manage Subscription portal. Cancellation takes effect at the end of your current billing period — you retain access to Pro features until then.</p>
+      <p>We do not offer refunds for partial billing periods. If you cancel a yearly plan mid-year, you will continue to have access until the year ends but will not receive a prorated refund.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>6. Your Data &amp; Ownership</h2>
+      <p>You own your data. ReceiptAI does not claim any ownership over the expense records, receipt images, or other content you upload. We act as a custodian of your data solely to provide the service.</p>
+      <p>You may export your data at any time using the CSV or Excel export features. Upon account deletion, all your data is permanently removed.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>7. Acceptable Use</h2>
+      <p>You agree not to use ReceiptAI to:</p>
+      <ul>
+        <li>Upload illegal, fraudulent, or harmful content.</li>
+        <li>Attempt to reverse-engineer, hack, or disrupt the service.</li>
+        <li>Create multiple accounts to abuse free trials.</li>
+        <li>Use the service for any purpose that violates applicable laws or regulations.</li>
+        <li>Resell or sublicense access to the service without written permission.</li>
+      </ul>
+      <p>We reserve the right to suspend or terminate accounts that violate these terms.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>8. Limitation of Liability</h2>
+      <p>To the fullest extent permitted by law, ReceiptAI shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the service, including loss of data, revenue, or profits.</p>
+      <p>Our total liability to you for any claim shall not exceed the amount you paid to ReceiptAI in the 12 months preceding the claim.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>9. Changes to These Terms</h2>
+      <p>We may update these Terms from time to time. We will notify you of significant changes via email or an in-app notice. Continued use of ReceiptAI after changes are posted constitutes acceptance of the new terms.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2>10. Contact</h2>
+      <p>For questions about these Terms, please contact us at <a href="mailto:support@receiptai.app">support@receiptai.app</a>.</p>
+    </div>
+  </div>
+</div><!-- /terms -->
 
 
 <!-- ═══════════════════════════════════════
