@@ -501,6 +501,76 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 .legal-section a { color: var(--gold); }
 
 /* ═══════════════════════════════════════
+   AUTO IMPORT PAGE
+═══════════════════════════════════════ */
+.ai-hero {
+  background: linear-gradient(135deg, rgba(212,175,55,.08), rgba(52,211,153,.06));
+  border: 1px solid var(--border2); border-radius: 20px;
+  padding: 36px 32px; margin-bottom: 28px; text-align: center;
+}
+.ai-hero-icon { font-size: 42px; margin-bottom: 14px; }
+.ai-hero h2 { font-size: 26px; font-weight: 800; color: var(--white); margin-bottom: 8px; }
+.ai-hero p  { font-size: 15px; color: var(--white2); font-weight: 300; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+
+.ai-email-box {
+  background: var(--black2); border: 2px solid var(--gold);
+  border-radius: 14px; padding: 20px 24px; margin-bottom: 28px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  box-shadow: 0 0 24px rgba(212,175,55,.1);
+}
+.ai-email-addr {
+  font-family: 'DM Sans', monospace; font-size: 16px; font-weight: 700;
+  color: var(--gold); word-break: break-all;
+}
+.ai-email-label { font-size: 11px; color: var(--white3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.ai-copy-btn {
+  background: var(--gold-dim); border: 1px solid var(--gold);
+  color: var(--gold); padding: 10px 18px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0;
+  transition: all .2s; white-space: nowrap;
+}
+.ai-copy-btn:hover { background: var(--gold); color: var(--black); }
+
+.ai-steps { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin-bottom: 28px; }
+.ai-step {
+  background: var(--black2); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 22px 20px;
+}
+.ai-step-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--black); font-size: 14px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px; flex-shrink: 0;
+}
+.ai-step h4 { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+.ai-step p  { font-size: 13px; color: var(--white3); line-height: 1.6; font-weight: 300; }
+.ai-step code { background: var(--black3,#111); color: var(--gold); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+.ai-imports-section h3 { font-size: 15px; font-weight: 700; color: var(--white); margin-bottom: 16px; }
+.ai-import-row {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--black2); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 14px 18px; margin-bottom: 10px;
+}
+.ai-import-icon { font-size: 20px; flex-shrink: 0; }
+.ai-import-info { flex: 1; min-width: 0; }
+.ai-import-vendor { font-size: 14px; font-weight: 600; color: var(--white); }
+.ai-import-meta   { font-size: 12px; color: var(--white3); margin-top: 2px; }
+.ai-import-amount { font-size: 16px; font-weight: 800; color: var(--green); flex-shrink: 0; }
+.ai-badge {
+  font-size: 11px; font-weight: 600; color: var(--gold);
+  background: rgba(212,175,55,.12); border: 1px solid rgba(212,175,55,.3);
+  padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+}
+.ai-empty { text-align: center; padding: 40px 0; color: var(--white3); font-size: 13px; }
+
+.sidebar-item.locked-feature {
+  opacity: .45; cursor: default; pointer-events: none;
+}
+.sidebar-item.locked-feature:hover { background: none; color: var(--white2); }
+
+/* ═══════════════════════════════════════
    APP DASHBOARD
 ═══════════════════════════════════════ */
 .app-layout { display: flex; height: calc(100vh - 66px); overflow: hidden; }
@@ -1378,6 +1448,10 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <div class="sidebar-item" data-section="expenses" onclick="showSection(this,'expenses')">
         <span class="si-icon">🗂</span> All Expenses
       </div>
+      <div class="sidebar-item locked-feature" id="sidebar-autoimport" data-section="autoimport"
+        onclick="if(userPlan==='pro'){showSection(this,'autoimport');loadEmailImports()}">
+        <span class="si-icon">📧</span> Auto Import
+      </div>
       <div class="sidebar-item" data-section="reports" onclick="showSection(this,'reports')">
         <span class="si-icon">📄</span> Reports
       </div>
@@ -1558,6 +1632,82 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- ── AUTO IMPORT ── -->
+      <div class="app-section" id="section-autoimport">
+
+        <!-- Pro gate: shown only to free users -->
+        <div id="autoimport-gate" style="display:none;text-align:center;padding:80px 24px">
+          <div style="font-size:48px;margin-bottom:20px">🔒</div>
+          <h2 style="font-size:22px;font-weight:800;color:var(--white);margin-bottom:10px">Pro Feature</h2>
+          <p style="color:var(--white3);font-size:15px;margin-bottom:28px;font-weight:300">
+            Upgrade to Pro to unlock Auto Import and get a personal forwarding address.
+          </p>
+          <button class="btn-gold" onclick="showSection(document.querySelector('[data-section=billing]'),'billing')"
+            style="border:none;padding:14px 32px;font-size:15px">
+            Upgrade to Pro →
+          </button>
+        </div>
+
+        <!-- Pro content -->
+        <div id="autoimport-content">
+          <div class="page-hdr">
+            <h2>Auto Import</h2>
+            <p>Forward receipt emails to auto-log expenses</p>
+          </div>
+
+          <!-- Hero -->
+          <div class="ai-hero">
+            <div class="ai-hero-icon">📧</div>
+            <h2>Auto-Import Receipts via Email</h2>
+            <p>Forward any receipt email to your personal ReceiptAI address and we'll log it automatically — no scanning needed.</p>
+          </div>
+
+          <!-- Forwarding address -->
+          <div style="margin-bottom:10px;font-size:12px;color:var(--white3);text-transform:uppercase;letter-spacing:1px;font-weight:600">Your Personal Forwarding Address</div>
+          <div class="ai-email-box">
+            <div>
+              <div class="ai-email-label">Forward receipts to this address</div>
+              <div class="ai-email-addr" id="ai-email-display">receipts-loading…@receiptai.com</div>
+            </div>
+            <button class="ai-copy-btn" onclick="copyEmailAddress()">📋 Copy</button>
+          </div>
+
+          <!-- Steps -->
+          <div style="margin-bottom:12px;font-size:13px;color:var(--white3);text-transform:uppercase;letter-spacing:1px;font-weight:600">Setup Guide</div>
+          <div class="ai-steps">
+            <div class="ai-step">
+              <div class="ai-step-num">1</div>
+              <h4>Copy your address</h4>
+              <p>Copy your unique ReceiptAI forwarding address above. It's tied to your account — keep it private.</p>
+            </div>
+            <div class="ai-step">
+              <div class="ai-step-num">2</div>
+              <h4>Set up forwarding</h4>
+              <p>
+                <strong style="color:var(--white)">Gmail:</strong> Settings → See all settings → Forwarding &amp; POP/IMAP → Add forwarding address.<br><br>
+                <strong style="color:var(--white)">iPhone Mail:</strong> Settings → Mail → Rules → Add Rule → forward emails from <code>amazon.com</code>, <code>uber.com</code>, etc.
+              </p>
+            </div>
+            <div class="ai-step">
+              <div class="ai-step-num">3</div>
+              <h4>Done — sit back</h4>
+              <p>Any forwarded receipt email is parsed by AI and appears in your expenses within minutes. We extract vendor, amount, date, and category automatically.</p>
+            </div>
+          </div>
+
+          <!-- Recent auto-imports -->
+          <div class="ai-imports-section">
+            <h3>Recent Auto-Imports</h3>
+            <div id="ai-imports-list">
+              <div class="ai-empty">
+                <div style="font-size:32px;margin-bottom:10px">📭</div>
+                No auto-imports yet — forward your first receipt email to get started!
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1821,6 +1971,7 @@ function showSection(el, section) {
   document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
   document.getElementById('section-' + section).classList.add('active');
   if (el) el.classList.add('active');
+  if (section === 'autoimport') loadEmailImports();
 }
 
 /* ─────────────────────────────
@@ -2320,6 +2471,25 @@ function setUserPlan(plan) {
   const upgrade = document.getElementById('billing-upgrade');
   if (proCard) proCard.style.display = plan === 'pro' ? 'block' : 'none';
   if (upgrade) upgrade.style.display = plan === 'pro' ? 'none'  : 'block';
+
+  // Auto Import sidebar: unlock for Pro, lock for free
+  const aiSidebar = document.getElementById('sidebar-autoimport');
+  if (aiSidebar) {
+    if (plan === 'pro') {
+      aiSidebar.classList.remove('locked-feature');
+      aiSidebar.style.pointerEvents = '';
+      aiSidebar.style.opacity       = '';
+      aiSidebar.querySelector('.si-icon').textContent = '📧';
+    } else {
+      aiSidebar.classList.add('locked-feature');
+    }
+  }
+
+  // Auto Import page gate: show lock wall for free users, content for pro
+  const gate    = document.getElementById('autoimport-gate');
+  const content = document.getElementById('autoimport-content');
+  if (gate    ) gate.style.display    = plan === 'pro' ? 'none'  : 'block';
+  if (content ) content.style.display = plan === 'pro' ? 'block' : 'none';
 }
 
 function exportExcel() {
@@ -2366,6 +2536,79 @@ function exportExcel() {
 
   XLSX.writeFile(wb, 'receiptai-expenses.xlsx');
   showToast('✓ Excel file exported!');
+}
+
+/* ─────────────────────────────
+   AUTO IMPORT — email address + recent imports
+───────────────────────────── */
+function getForwardingEmail() {
+  if (!currentUser?.id) return null;
+  // Use first 8 chars of UUID (keeps address short but unique enough)
+  return `receipts-${currentUser.id.replace(/-/g,'').slice(0,8)}@receiptai.com`;
+}
+
+function copyEmailAddress() {
+  const addr = getForwardingEmail();
+  if (!addr) return;
+  navigator.clipboard.writeText(addr).then(() => {
+    showToast('✓ Email address copied!');
+  }).catch(() => {
+    // Fallback for browsers that block clipboard without user gesture
+    const el = document.getElementById('ai-email-display');
+    if (el) {
+      const range = document.createRange();
+      range.selectNode(el);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    }
+    showToast('Select the address and copy manually.', true);
+  });
+}
+
+function renderEmailDisplay() {
+  const el = document.getElementById('ai-email-display');
+  if (el) el.textContent = getForwardingEmail() || '—';
+}
+
+async function loadEmailImports() {
+  renderEmailDisplay();
+  if (!currentUser?.id || !sessionToken) return;
+
+  const list = document.getElementById('ai-imports-list');
+  if (list) list.innerHTML = '<div class="ai-empty" style="padding:20px 0">Loading…</div>';
+
+  try {
+    const res  = await fetch(`${RAIL}/api/email-imports/${currentUser.id}`, {
+      headers: { 'Authorization': `Bearer ${sessionToken}` },
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    if (!list) return;
+    if (!data.length) {
+      list.innerHTML = `<div class="ai-empty">
+        <div style="font-size:32px;margin-bottom:10px">📭</div>
+        No auto-imports yet — forward your first receipt email to get started!
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = data.map(e => {
+      const amt = parseFloat(String(e.amount).replace(/[^0-9.]/g,'')) || 0;
+      return `<div class="ai-import-row">
+        <div class="ai-import-icon">🧾</div>
+        <div class="ai-import-info">
+          <div class="ai-import-vendor">${esc(e.vendor)}</div>
+          <div class="ai-import-meta">${esc(e.date || '')} · ${esc(e.category || 'Other')}</div>
+        </div>
+        <div class="ai-badge">📧 Auto-imported</div>
+        <div class="ai-import-amount">$${amt.toFixed(2)}</div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    console.error('[loadEmailImports]', err.message);
+    if (list) list.innerHTML = '<div class="ai-empty">Could not load imports — try again later.</div>';
+  }
 }
 
 /* ─────────────────────────────
