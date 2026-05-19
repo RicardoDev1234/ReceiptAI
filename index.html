@@ -547,9 +547,28 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
   font-size: 17px; flex-shrink: 0;
 }
 .rcpt-info { flex: 1; min-width: 0; }
-.rcpt-name { font-size: 13px; font-weight: 500; color: var(--white); }
-.rcpt-date { font-size: 11px; color: var(--white3); margin-top: 2px; }
+.rcpt-name { font-size: 14px; font-weight: 700; color: var(--white); }
+.rcpt-meta { display: flex; align-items: center; gap: 7px; margin-top: 4px; flex-wrap: wrap; }
+.rcpt-date { font-size: 11px; color: var(--white3); }
 .rcpt-amt { font-size: 14px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+
+/* VENDOR HERO (AI Result) */
+.vendor-hero input {
+  font-size: 22px !important; font-weight: 700 !important;
+  color: var(--gold) !important; padding: 16px 18px !important;
+  border-color: var(--border) !important; letter-spacing: -0.3px;
+}
+.vendor-hero input:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 3px var(--gold-dim) !important; }
+.vendor-hero label { font-size: 12px !important; color: var(--gold) !important; }
+
+/* EXPENSE VENDOR CELL */
+.exp-vendor { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+
+/* BILLING PAGE */
+.billing-header { text-align: center; margin-bottom: 40px; }
+.billing-header h2 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; margin-bottom: 10px; }
+.billing-header p { color: var(--white2); font-size: 15px; font-weight: 300; }
+.billing-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; max-width: 680px; margin: 0 auto; }
 
 /* SCAN SECTION */
 .scan-drop {
@@ -1007,6 +1026,9 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       </div>
 
       <div class="sidebar-section-label">Settings</div>
+      <div class="sidebar-item" data-section="billing" onclick="showSection(this,'billing')">
+        <span class="si-icon">💳</span> Billing
+      </div>
       <div class="sidebar-item" data-section="admin" onclick="showSection(this,'admin')">
         <span class="si-icon">⚙️</span> Admin
       </div>
@@ -1088,22 +1110,34 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
             <div class="rcpt-list">
               <div class="rcpt-row">
                 <div class="rcpt-ico" style="background:var(--green-dim)">🛒</div>
-                <div class="rcpt-info"><div class="rcpt-name">Carrefour</div><div class="rcpt-date">May 18, 2026</div></div>
+                <div class="rcpt-info">
+                  <div class="rcpt-name">Carrefour</div>
+                  <div class="rcpt-meta"><span class="tag tl">Food &amp; Drink</span><span class="rcpt-date">May 18, 2026</span></div>
+                </div>
                 <div class="rcpt-amt">$47.30</div>
               </div>
               <div class="rcpt-row">
                 <div class="rcpt-ico" style="background:var(--gold-dim)">✈️</div>
-                <div class="rcpt-info"><div class="rcpt-name">Qatar Airways</div><div class="rcpt-date">May 17, 2026</div></div>
+                <div class="rcpt-info">
+                  <div class="rcpt-name">Qatar Airways</div>
+                  <div class="rcpt-meta"><span class="tag tl">Travel</span><span class="rcpt-date">May 17, 2026</span></div>
+                </div>
                 <div class="rcpt-amt">$320.00</div>
               </div>
               <div class="rcpt-row">
                 <div class="rcpt-ico" style="background:var(--green-dim)">☕</div>
-                <div class="rcpt-info"><div class="rcpt-name">Starbucks</div><div class="rcpt-date">May 16, 2026</div></div>
+                <div class="rcpt-info">
+                  <div class="rcpt-name">Starbucks</div>
+                  <div class="rcpt-meta"><span class="tag tgr">Food &amp; Drink</span><span class="rcpt-date">May 16, 2026</span></div>
+                </div>
                 <div class="rcpt-amt">$14.50</div>
               </div>
               <div class="rcpt-row">
                 <div class="rcpt-ico" style="background:var(--gold-dim)">💻</div>
-                <div class="rcpt-info"><div class="rcpt-name">Adobe CC</div><div class="rcpt-date">May 15, 2026</div></div>
+                <div class="rcpt-info">
+                  <div class="rcpt-name">Adobe CC</div>
+                  <div class="rcpt-meta"><span class="tag tg">Software &amp; Subscriptions</span><span class="rcpt-date">May 15, 2026</span></div>
+                </div>
                 <div class="rcpt-amt">$54.99</div>
               </div>
             </div>
@@ -1151,12 +1185,19 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
         </div>
         <div class="card">
           <div class="ai-badge">✦ Extracted by AI</div>
+
+          <!-- Vendor hero — biggest most prominent field -->
+          <div class="rfield vendor-hero" style="margin-bottom:20px">
+            <label>Vendor / Store</label>
+            <input id="r-vendor" placeholder="Store or restaurant name"/>
+          </div>
+
           <div class="result-grid">
-            <div class="rfield"><label>Vendor</label><input id="r-vendor" placeholder="Vendor name"/></div>
             <div class="rfield"><label>Date</label><input id="r-date" type="date"/></div>
             <div class="rfield"><label>Total Amount</label><input id="r-amount" placeholder="$0.00"/></div>
             <div class="rfield"><label>Tax</label><input id="r-tax" placeholder="$0.00"/></div>
-            <div class="rfield">
+            <div class="rfield"><label>Payment Method</label><input id="r-payment" placeholder="e.g. Visa ••••4211"/></div>
+            <div class="rfield" style="grid-column:1/-1">
               <label>Category</label>
               <select id="r-category">
                 <option>Food &amp; Drink</option>
@@ -1168,9 +1209,8 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
                 <option>Other</option>
               </select>
             </div>
-            <div class="rfield"><label>Payment Method</label><input id="r-payment" placeholder="e.g. Visa ••••4211"/></div>
           </div>
-          <div class="rfield" style="margin-bottom:22px">
+          <div class="rfield" style="margin-bottom:22px;margin-top:14px">
             <label>Notes</label>
             <input id="r-notes" placeholder="Optional notes…"/>
           </div>
@@ -1194,14 +1234,30 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
           <table class="exp-table">
             <thead>
               <tr>
-                <th>Vendor</th><th>Date</th><th>Category</th><th>Amount</th>
+                <th>Vendor &amp; Category</th><th>Date</th><th>Amount</th>
               </tr>
             </thead>
             <tbody id="expenses-tbody">
-              <tr><td style="color:var(--white)">Carrefour</td><td>May 18, 2026</td><td><span class="tag tl">Groceries</span></td><td style="color:var(--gold);font-weight:700">$47.30</td></tr>
-              <tr><td style="color:var(--white)">Qatar Airways</td><td>May 17, 2026</td><td><span class="tag tl">Travel</span></td><td style="color:var(--gold);font-weight:700">$320.00</td></tr>
-              <tr><td style="color:var(--white)">Starbucks</td><td>May 16, 2026</td><td><span class="tag tgr">Food</span></td><td style="color:var(--gold);font-weight:700">$14.50</td></tr>
-              <tr><td style="color:var(--white)">Adobe CC</td><td>May 15, 2026</td><td><span class="tag tg">Software</span></td><td style="color:var(--gold);font-weight:700">$54.99</td></tr>
+              <tr>
+                <td><div class="exp-vendor">Carrefour</div><span class="tag tl">Food &amp; Drink</span></td>
+                <td>May 18, 2026</td>
+                <td style="color:var(--gold);font-weight:700">$47.30</td>
+              </tr>
+              <tr>
+                <td><div class="exp-vendor">Qatar Airways</div><span class="tag tl">Travel</span></td>
+                <td>May 17, 2026</td>
+                <td style="color:var(--gold);font-weight:700">$320.00</td>
+              </tr>
+              <tr>
+                <td><div class="exp-vendor">Starbucks</div><span class="tag tgr">Food &amp; Drink</span></td>
+                <td>May 16, 2026</td>
+                <td style="color:var(--gold);font-weight:700">$14.50</td>
+              </tr>
+              <tr>
+                <td><div class="exp-vendor">Adobe CC</div><span class="tag tg">Software &amp; Subscriptions</span></td>
+                <td>May 15, 2026</td>
+                <td style="color:var(--gold);font-weight:700">$54.99</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -1309,6 +1365,61 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
         </div>
       </div>
 
+      <!-- ── BILLING ── -->
+      <div class="app-section" id="section-billing">
+        <div class="page-hdr">
+          <h2>Billing &amp; Upgrade</h2>
+          <p>Manage your subscription</p>
+        </div>
+
+        <div class="billing-header">
+          <h2>Choose your <span style="background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">plan</span></h2>
+          <p>7-day free trial on Pro · Cancel anytime · No hidden fees</p>
+          <div class="toggle-row" style="justify-content:center;margin-top:20px">
+            <span class="toggle-lbl on" id="b-lbl-monthly">Monthly</span>
+            <div class="toggle-track" id="b-billing-toggle" onclick="toggleBillingPage()">
+              <div class="toggle-knob"></div>
+            </div>
+            <span class="toggle-lbl" id="b-lbl-yearly">Yearly</span>
+            <span class="save-badge" id="b-save-badge" style="display:none">Save 37%</span>
+          </div>
+        </div>
+
+        <div class="billing-plans">
+          <!-- FREE TRIAL -->
+          <div class="pricing-card">
+            <div class="plan-name">Free Trial</div>
+            <div class="plan-price"><sup>$</sup>0<sub>/mo</sub></div>
+            <div class="plan-note" id="b-trial-note">7 days free — then $7.99/mo</div>
+            <div class="plan-divider"></div>
+            <ul class="plan-features">
+              <li><span class="chk">✓</span>Full access for 7 days</li>
+              <li><span class="chk">✓</span>Unlimited receipts &amp; AI scanning</li>
+              <li><span class="chk">✓</span>Dashboard, reports &amp; CSV export</li>
+              <li><span class="chk">✓</span>No credit card to start</li>
+            </ul>
+            <button class="plan-btn outline-btn" onclick="showPage('signup')">Start Free Trial</button>
+          </div>
+          <!-- PRO -->
+          <div class="pricing-card popular">
+            <div class="popular-badge">Most Popular</div>
+            <div class="plan-name">Pro</div>
+            <div class="plan-price" id="b-pro-price"><sup>$</sup>7.99<sub>/mo</sub></div>
+            <div class="plan-note" id="b-pro-note">Billed monthly · Cancel anytime</div>
+            <div class="plan-divider"></div>
+            <ul class="plan-features">
+              <li><span class="chk">✓</span>Unlimited receipts</li>
+              <li><span class="chk">✓</span>Advanced dashboard &amp; analytics</li>
+              <li><span class="chk">✓</span>Tax report generator</li>
+              <li><span class="chk">✓</span>Multi-currency support</li>
+              <li><span class="chk">✓</span>Priority support</li>
+              <li><span class="chk">✓</span>All future features included</li>
+            </ul>
+            <button class="plan-btn gold-btn" onclick="startCheckoutFromBilling()">Upgrade to Pro →</button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div><!-- /app -->
@@ -1373,26 +1484,51 @@ function showSection(el, section) {
 }
 
 /* ─────────────────────────────
-   BILLING TOGGLE
+   BILLING TOGGLE (landing + billing page stay in sync)
 ───────────────────────────── */
 let isYearly = false;
 
-function toggleBilling() {
-  isYearly = !isYearly;
-  document.getElementById('billing-toggle').classList.toggle('on', isYearly);
-  document.getElementById('lbl-monthly').classList.toggle('on', !isYearly);
-  document.getElementById('lbl-yearly').classList.toggle('on', isYearly);
-  document.getElementById('save-badge').style.display = isYearly ? 'inline-block' : 'none';
+function applyBillingState() {
+  // Landing page elements
+  const t = document.getElementById('billing-toggle');
+  if (t) t.classList.toggle('on', isYearly);
+  const lm = document.getElementById('lbl-monthly'); if (lm) lm.classList.toggle('on', !isYearly);
+  const ly = document.getElementById('lbl-yearly');  if (ly) ly.classList.toggle('on', isYearly);
+  const sb = document.getElementById('save-badge');  if (sb) sb.style.display = isYearly ? 'inline-block' : 'none';
+  const pp = document.getElementById('pro-price');
+  const pn = document.getElementById('pro-note');
+  const tn = document.getElementById('trial-note');
+  // Billing page elements
+  const bt  = document.getElementById('b-billing-toggle');
+  if (bt) bt.classList.toggle('on', isYearly);
+  const blm = document.getElementById('b-lbl-monthly'); if (blm) blm.classList.toggle('on', !isYearly);
+  const bly = document.getElementById('b-lbl-yearly');  if (bly) bly.classList.toggle('on', isYearly);
+  const bsb = document.getElementById('b-save-badge');  if (bsb) bsb.style.display = isYearly ? 'inline-block' : 'none';
+  const bpp = document.getElementById('b-pro-price');
+  const bpn = document.getElementById('b-pro-note');
+  const btn = document.getElementById('b-trial-note');
+
   if (isYearly) {
-    document.getElementById('pro-price').innerHTML = '<sup>$</sup>4.99<sub>/mo</sub>';
-    document.getElementById('pro-note').textContent = 'Billed $59.99/year · Save $35.89';
-    document.getElementById('trial-note').textContent = '7 days free — then $59.99/year';
+    if (pp) pp.innerHTML = '<sup>$</sup>4.99<sub>/mo</sub>';
+    if (pn) pn.textContent = 'Billed $59.99/year · Save $35.89';
+    if (tn) tn.textContent = '7 days free — then $59.99/year';
+    if (bpp) bpp.innerHTML = '<sup>$</sup>4.99<sub>/mo</sub>';
+    if (bpn) bpn.textContent = 'Billed $59.99/year · Save $35.89';
+    if (btn) btn.textContent = '7 days free — then $59.99/year';
   } else {
-    document.getElementById('pro-price').innerHTML = '<sup>$</sup>7.99<sub>/mo</sub>';
-    document.getElementById('pro-note').textContent = 'Billed monthly · Cancel anytime';
-    document.getElementById('trial-note').textContent = '7 days free — then $7.99/mo';
+    if (pp) pp.innerHTML = '<sup>$</sup>7.99<sub>/mo</sub>';
+    if (pn) pn.textContent = 'Billed monthly · Cancel anytime';
+    if (tn) tn.textContent = '7 days free — then $7.99/mo';
+    if (bpp) bpp.innerHTML = '<sup>$</sup>7.99<sub>/mo</sub>';
+    if (bpn) bpn.textContent = 'Billed monthly · Cancel anytime';
+    if (btn) btn.textContent = '7 days free — then $7.99/mo';
   }
 }
+
+function toggleBilling()     { isYearly = !isYearly; applyBillingState(); }
+function toggleBillingPage() { isYearly = !isYearly; applyBillingState(); }
+
+async function startCheckoutFromBilling() { await startCheckout(); }
 
 /* ─────────────────────────────
    AUTH — EYE TOGGLE
@@ -1645,9 +1781,8 @@ async function saveExpense() {
   const tbody = document.getElementById('expenses-tbody');
   const row   = document.createElement('tr');
   row.innerHTML = `
-    <td style="color:var(--white);font-weight:500">${exp.vendor}</td>
+    <td><div class="exp-vendor">${exp.vendor}</div><span class="tag tg">${exp.category}</span></td>
     <td>${exp.date}</td>
-    <td><span class="tag tg">${exp.category}</span></td>
     <td style="color:var(--gold);font-weight:700">${exp.amount}</td>`;
   tbody.insertBefore(row, tbody.firstChild);
 
