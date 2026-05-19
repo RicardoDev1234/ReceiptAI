@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "ReceiptAI",
+    "slug": "receiptai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#534AB7"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "ReceiptAI needs camera access to photograph receipts.",
+        "NSPhotoLibraryUsageDescription": "ReceiptAI needs photo library access to select receipt images."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#534AB7"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ReceiptAI needs access to your photos to select receipt images.",
+          "cameraPermission": "ReceiptAI needs access to your camera to photograph receipts."
+        }
+      ]
+    ]
+  }
+}
