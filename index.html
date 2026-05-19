@@ -1059,7 +1059,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 
       <div class="sidebar-section-label">Settings</div>
       <div class="sidebar-item" data-section="billing" onclick="showSection(this,'billing')">
-        <span class="si-icon">💳</span> Billing
+        <span class="si-icon">✦</span> My Plan
       </div>
       <div class="sidebar-item" data-section="admin" onclick="showSection(this,'admin');loadAdminStats()">
         <span class="si-icon">⚙️</span> Admin
@@ -1324,56 +1324,89 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <!-- ── BILLING ── -->
       <div class="app-section" id="section-billing">
         <div class="page-hdr">
-          <h2>Billing &amp; Upgrade</h2>
+          <h2>My Plan</h2>
           <p>Manage your subscription</p>
         </div>
 
-        <div class="billing-header">
-          <h2>Choose your <span style="background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">plan</span></h2>
-          <p>7-day free trial on Pro · Cancel anytime · No hidden fees</p>
-          <div class="toggle-row" style="justify-content:center;margin-top:20px">
-            <span class="toggle-lbl on" id="b-lbl-monthly">Monthly</span>
-            <div class="toggle-track" id="b-billing-toggle" onclick="toggleBillingPage()">
-              <div class="toggle-knob"></div>
+        <!-- ── PRO STATUS CARD (shown when plan = pro) ── -->
+        <div id="billing-pro-card" style="display:none;max-width:520px;margin:0 auto">
+          <div class="card" style="text-align:center;padding:48px 44px;border-color:var(--gold);background:linear-gradient(160deg,#161208 0%,var(--black2) 100%);box-shadow:0 0 0 1px var(--gold3),0 0 50px #C9A84C18">
+            <div style="font-size:52px;margin-bottom:14px;line-height:1">✦</div>
+            <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">You're on Pro!</div>
+            <div style="font-size:14.5px;color:var(--white2);margin-bottom:32px;font-weight:300">All Pro features are unlocked and active on your account.</div>
+
+            <div style="background:var(--black3);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:28px;text-align:left">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2)">
+                <span style="font-size:13px;color:var(--white3)">Plan</span>
+                <span style="font-size:13.5px;font-weight:700;color:var(--gold)">Pro ✦</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2)">
+                <span style="font-size:13px;color:var(--white3)">Status</span>
+                <span style="font-size:13.5px;font-weight:700;color:var(--green)">● Active</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+                <span style="font-size:13px;color:var(--white3)">Features</span>
+                <span style="font-size:13.5px;font-weight:600;color:var(--white)">All unlocked</span>
+              </div>
             </div>
-            <span class="toggle-lbl" id="b-lbl-yearly">Yearly</span>
-            <span class="save-badge" id="b-save-badge" style="display:none">Save 37%</span>
+
+            <button class="btn-gold" onclick="openPortal()" style="width:100%;justify-content:center;border:none;padding:15px;font-size:15px">
+              Manage Subscription →
+            </button>
+            <p style="font-size:12px;color:var(--white3);margin-top:14px;line-height:1.6">View invoices, update payment method, change plan, or cancel — all in the Stripe portal.</p>
           </div>
         </div>
 
-        <div class="billing-plans">
-          <!-- FREE TRIAL -->
-          <div class="pricing-card">
-            <div class="plan-name">Free Trial</div>
-            <div class="plan-price"><sup>$</sup>0<sub>/mo</sub></div>
-            <div class="plan-note" id="b-trial-note">7 days free — then $7.99/mo</div>
-            <div class="plan-divider"></div>
-            <ul class="plan-features">
-              <li><span class="chk">✓</span>Full access for 7 days</li>
-              <li><span class="chk">✓</span>Unlimited receipts &amp; AI scanning</li>
-              <li><span class="chk">✓</span>Dashboard, reports &amp; CSV export</li>
-              <li><span class="chk">✓</span>No credit card to start</li>
-            </ul>
-            <button class="plan-btn outline-btn" onclick="showPage('signup')">Start Free Trial</button>
+        <!-- ── UPGRADE PLANS (shown when plan = free) ── -->
+        <div id="billing-upgrade">
+          <div class="billing-header">
+            <h2>Choose your <span style="background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">plan</span></h2>
+            <p>7-day free trial on Pro · Cancel anytime · No hidden fees</p>
+            <div class="toggle-row" style="justify-content:center;margin-top:20px">
+              <span class="toggle-lbl on" id="b-lbl-monthly">Monthly</span>
+              <div class="toggle-track" id="b-billing-toggle" onclick="toggleBillingPage()">
+                <div class="toggle-knob"></div>
+              </div>
+              <span class="toggle-lbl" id="b-lbl-yearly">Yearly</span>
+              <span class="save-badge" id="b-save-badge" style="display:none">Save 37%</span>
+            </div>
           </div>
-          <!-- PRO -->
-          <div class="pricing-card popular">
-            <div class="popular-badge">Most Popular</div>
-            <div class="plan-name">Pro</div>
-            <div class="plan-price" id="b-pro-price"><sup>$</sup>7.99<sub>/mo</sub></div>
-            <div class="plan-note" id="b-pro-note">Billed monthly · Cancel anytime</div>
-            <div class="plan-divider"></div>
-            <ul class="plan-features">
-              <li><span class="chk">✓</span>Unlimited receipts</li>
-              <li><span class="chk">✓</span>Advanced dashboard &amp; analytics</li>
-              <li><span class="chk">✓</span>Tax report generator</li>
-              <li><span class="chk">✓</span>Multi-currency support</li>
-              <li><span class="chk">✓</span>Priority support</li>
-              <li><span class="chk">✓</span>All future features included</li>
-            </ul>
-            <button class="plan-btn gold-btn" onclick="startCheckoutFromBilling()">Upgrade to Pro →</button>
+
+          <div class="billing-plans">
+            <!-- FREE TRIAL -->
+            <div class="pricing-card">
+              <div class="plan-name">Free Trial</div>
+              <div class="plan-price"><sup>$</sup>0<sub>/mo</sub></div>
+              <div class="plan-note">7 days free — then $7.99/mo</div>
+              <div class="plan-divider"></div>
+              <ul class="plan-features">
+                <li><span class="chk">✓</span>Full access for 7 days</li>
+                <li><span class="chk">✓</span>Unlimited receipts &amp; AI scanning</li>
+                <li><span class="chk">✓</span>Dashboard, reports &amp; CSV export</li>
+                <li><span class="chk">✓</span>No credit card to start</li>
+              </ul>
+              <button class="plan-btn outline-btn" onclick="showPage('signup')">Start Free Trial</button>
+            </div>
+            <!-- PRO -->
+            <div class="pricing-card popular">
+              <div class="popular-badge">Most Popular</div>
+              <div class="plan-name">Pro</div>
+              <div class="plan-price" id="b-pro-price"><sup>$</sup>7.99<sub>/mo</sub></div>
+              <div class="plan-note" id="b-pro-note">Billed monthly · Cancel anytime</div>
+              <div class="plan-divider"></div>
+              <ul class="plan-features">
+                <li><span class="chk">✓</span>Unlimited receipts</li>
+                <li><span class="chk">✓</span>Advanced dashboard &amp; analytics</li>
+                <li><span class="chk">✓</span>Tax report generator</li>
+                <li><span class="chk">✓</span>Multi-currency support</li>
+                <li><span class="chk">✓</span>Priority support</li>
+                <li><span class="chk">✓</span>All future features included</li>
+              </ul>
+              <button class="plan-btn gold-btn" onclick="startCheckoutFromBilling()">Upgrade to Pro →</button>
+            </div>
           </div>
         </div>
+
       </div>
 
     </main>
@@ -1500,6 +1533,23 @@ function toggleBilling()     { isYearly = !isYearly; applyBillingState(); }
 function toggleBillingPage() { isYearly = !isYearly; applyBillingState(); }
 
 async function startCheckoutFromBilling() { await startCheckout(); }
+
+async function openPortal() {
+  if (!sessionToken) { showToast('Please sign in to manage your subscription.', true); return; }
+  showLoading('Opening subscription portal…');
+  try {
+    const res  = await fetch(`${RAIL}/api/create-portal-session`, {
+      method:  'POST',
+      headers: { 'Authorization': `Bearer ${sessionToken}` },
+    });
+    const json = await res.json();
+    if (json.url) { window.location.href = json.url; }
+    else throw new Error(json.error || 'Could not open portal.');
+  } catch (err) {
+    hideLoading();
+    showToast(err.message, true);
+  }
+}
 
 /* ─────────────────────────────
    AUTH — EYE TOGGLE
@@ -1887,6 +1937,8 @@ function requirePro() {
 
 function setUserPlan(plan) {
   userPlan = plan;
+
+  // Report cards lock/unlock
   const proCards = ['rc-monthly', 'rc-annual', 'rc-category', 'rc-csv', 'excel-card'];
   proCards.forEach(id => {
     const card = document.getElementById(id);
@@ -1899,6 +1951,12 @@ function setUserPlan(plan) {
       card.querySelector('.pro-badge').textContent = '🔒 Pro';
     }
   });
+
+  // Billing page: show pro status card or upgrade plans
+  const proCard = document.getElementById('billing-pro-card');
+  const upgrade = document.getElementById('billing-upgrade');
+  if (proCard) proCard.style.display = plan === 'pro' ? 'block' : 'none';
+  if (upgrade) upgrade.style.display = plan === 'pro' ? 'none'  : 'block';
 }
 
 function exportExcel() {

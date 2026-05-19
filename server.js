@@ -336,6 +336,31 @@ CREATE POLICY "Users can delete own expenses"
   });
 });
 
+/* ── POST /api/create-portal-session — Stripe customer portal ── */
+app.post('/api/create-portal-session', async (req, res) => {
+  try {
+    const user = await getAuthUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const stripe    = getStripe();
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customerId = customers.data.length > 0
+      ? customers.data[0].id
+      : (await stripe.customers.create({ email: user.email })).id;
+
+    const baseUrl = process.env.APP_URL || `http://localhost:${PORT}`;
+    const session = await stripe.billingPortal.sessions.create({
+      customer:   customerId,
+      return_url: baseUrl + '/',
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('[create-portal-session]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 /* ── POST /api/analyze-receipt ── */
 app.post('/api/analyze-receipt', async (req, res) => {
   try {
