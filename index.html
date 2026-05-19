@@ -6,6 +6,7 @@
 <title>ReceiptAI — Smart Expense Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root {
   --black:  #080808;
@@ -674,6 +675,9 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 .report-card .ri { font-size: 36px; margin-bottom: 14px; }
 .report-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--white); }
 .report-card p { font-size: 13px; color: var(--white2); line-height: 1.6; font-weight: 300; }
+.report-card.locked { opacity: 0.55; cursor: not-allowed; }
+.report-card.locked:hover { border-color: var(--border2); transform: none; box-shadow: none; }
+.pro-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .5px; background: var(--gold-dim); color: var(--gold); border: 1px solid var(--gold); padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; text-transform: uppercase; }
 
 /* ADMIN */
 .admin-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 22px; }
@@ -1240,6 +1244,11 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
             <h3>Export CSV</h3>
             <p>Download a spreadsheet-ready CSV of all your expenses with every data field included.</p>
           </div>
+          <div class="report-card locked" id="excel-card" onclick="exportExcel()">
+            <div class="ri">📊</div>
+            <h3>Export to Excel <span class="pro-badge">🔒 Pro</span></h3>
+            <p>Full .xlsx file with three sheets: Category Summary, Monthly Breakdown, and complete Transaction History.</p>
+          </div>
         </div>
       </div>
 
@@ -1380,6 +1389,8 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
    RAILWAY BACKEND BASE URL
 ───────────────────────────── */
 const RAIL = 'https://receiptai-production.up.railway.app';
+
+let userPlan = 'free'; // 'free' | 'pro' — updated after auth/checkout
 
 /* ─────────────────────────────
    SUPABASE CLIENT
@@ -1847,6 +1858,71 @@ function exportCSV() {
 }
 
 /* ─────────────────────────────
+   EXPORT EXCEL (Pro)
+───────────────────────────── */
+function setUserPlan(plan) {
+  userPlan = plan;
+  const card = document.getElementById('excel-card');
+  if (!card) return;
+  if (plan === 'pro') {
+    card.classList.remove('locked');
+    card.querySelector('.pro-badge').textContent = '✓ Pro';
+  } else {
+    card.classList.add('locked');
+    card.querySelector('.pro-badge').textContent = '🔒 Pro';
+  }
+}
+
+function exportExcel() {
+  if (userPlan !== 'pro') {
+    alert('🔒 Pro feature — upgrade to unlock.\nGo to Billing to upgrade your plan.');
+    return;
+  }
+  if (!expenses.length) { showToast('No expenses to export yet.', true); return; }
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Summary by category
+  const catMap = {};
+  expenses.forEach(e => {
+    const amt = parseFloat(String(e.amount).replace(/[^0-9.]/g, '')) || 0;
+    catMap[e.category] = (catMap[e.category] || 0) + amt;
+  });
+  const summaryRows = [['Category', 'Total Spent ($)']];
+  let grand = 0;
+  Object.entries(catMap).sort((a, b) => b[1] - a[1]).forEach(([cat, total]) => {
+    summaryRows.push([cat, +total.toFixed(2)]);
+    grand += total;
+  });
+  summaryRows.push(['', '']);
+  summaryRows.push(['GRAND TOTAL', +grand.toFixed(2)]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Summary');
+
+  // Sheet 2: Monthly breakdown
+  const monthMap = {};
+  expenses.forEach(e => {
+    const amt = parseFloat(String(e.amount).replace(/[^0-9.]/g, '')) || 0;
+    const month = (e.date || '').slice(0, 7) || 'Unknown';
+    if (!monthMap[month]) monthMap[month] = { total: 0, count: 0 };
+    monthMap[month].total += amt;
+    monthMap[month].count += 1;
+  });
+  const monthRows = [['Month', 'Total Spent ($)', 'Receipts']];
+  Object.entries(monthMap).sort().forEach(([month, d]) => {
+    monthRows.push([month, +d.total.toFixed(2), d.count]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(monthRows), 'Monthly Breakdown');
+
+  // Sheet 3: Full transaction history
+  const txRows = [['Vendor', 'Date', 'Category', 'Amount', 'Tax', 'Payment', 'Notes']];
+  expenses.forEach(e => txRows.push([e.vendor, e.date, e.category, e.amount, e.tax || '', e.payment || '', e.notes || '']));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(txRows), 'All Transactions');
+
+  XLSX.writeFile(wb, 'receiptai-expenses.xlsx');
+  showToast('✓ Excel file exported!');
+}
+
+/* ─────────────────────────────
    SEARCH FILTER
 ───────────────────────────── */
 function filterExpenses(q) {
@@ -1888,6 +1964,7 @@ function showToast(msg, isErr) {
     });
   }
   if (new URLSearchParams(window.location.search).get('checkout') === 'success') {
+    setUserPlan('pro');
     showToast('🎉 Subscription activated — welcome to Pro!');
     history.replaceState({}, '', '/');
     showApp();
