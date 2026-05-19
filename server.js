@@ -153,12 +153,22 @@ app.post('/api/create-checkout-session', async (req, res) => {
 app.post('/api/analyze-receipt', async (req, res) => {
   try {
     const { base64, mediaType } = req.body;
+
     if (!base64 || !mediaType) {
       return res.status(400).json({ error: 'Missing base64 or mediaType in request body.' });
     }
 
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(mediaType)) {
+      return res.status(400).json({
+        error: `Unsupported mediaType "${mediaType}". Must be one of: ${validTypes.join(', ')}`,
+      });
+    }
+
+    console.log(`[analyze-receipt] mediaType=${mediaType} base64Length=${base64.length}`);
+
     const msg = await getAnthropic().messages.create({
-      model:      'claude-sonnet-4-20250514',
+      model:      'claude-sonnet-4-6',
       max_tokens: 1024,
       messages: [{
         role:    'user',
@@ -185,10 +195,21 @@ app.post('/api/analyze-receipt', async (req, res) => {
 
     const text  = msg.content.map(b => b.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
-    res.json(JSON.parse(clean));
+    console.log('[analyze-receipt] AI response:', clean);
+
+    let result;
+    try {
+      result = JSON.parse(clean);
+    } catch (parseErr) {
+      console.error('[analyze-receipt] JSON parse failed. Raw text:', clean);
+      return res.status(500).json({ error: 'AI returned non-JSON response.', raw: clean.slice(0, 300) });
+    }
+
+    res.json(result);
   } catch (err) {
-    console.error('[Anthropic]', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[analyze-receipt] status=%s message=%s', err.status ?? 'n/a', err.message);
+    console.error('[analyze-receipt] full error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    res.status(500).json({ error: err.message || 'Failed to analyze receipt', status: err.status });
   }
 });
 
