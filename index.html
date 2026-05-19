@@ -269,8 +269,8 @@ nav {
   text-transform: uppercase; letter-spacing: 2px; margin-bottom: 18px;
 }
 .plan-price {
-  font-family: 'Playfair Display', serif;
-  font-size: 58px; font-weight: 900; color: var(--white); line-height: 1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 58px; font-weight: 800; color: var(--white); line-height: 1;
 }
 .plan-price sup { font-size: 24px; vertical-align: super; }
 .plan-price sub {
@@ -528,7 +528,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 .kpi-card.g::before { background: linear-gradient(90deg, var(--gold), transparent); }
 .kpi-card.gr::before { background: linear-gradient(90deg, var(--green), transparent); }
 .kpi-label { font-size: 11px; color: var(--white3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 9px; font-weight: 600; }
-.kpi-value { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 900; }
+.kpi-value { font-family: 'DM Sans', sans-serif; font-size: 30px; font-weight: 800; }
 .kpi-value.gold-c { color: var(--gold); }
 .kpi-value.green-c { color: var(--green); }
 .kpi-trend { font-size: 12px; color: var(--white3); margin-top: 5px; }
@@ -706,7 +706,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
   border-radius: 16px; padding: 22px;
 }
 .admin-kpi .ak-label { font-size: 11px; color: var(--white3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 9px; font-weight: 600; }
-.admin-kpi .ak-val { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 900; color: var(--gold); }
+.admin-kpi .ak-val { font-family: 'DM Sans', sans-serif; font-size: 34px; font-weight: 800; color: var(--gold); }
 .admin-kpi .ak-chg { font-size: 12px; color: var(--green); margin-top: 4px; }
 
 .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
@@ -1061,7 +1061,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <div class="sidebar-item" data-section="billing" onclick="showSection(this,'billing')">
         <span class="si-icon">✦</span> My Plan
       </div>
-      <div class="sidebar-item" data-section="admin" onclick="showSection(this,'admin');loadAdminStats()">
+      <div class="sidebar-item" id="sidebar-admin-item" data-section="admin" onclick="showSection(this,'admin');loadAdminStats()" style="display:none">
         <span class="si-icon">⚙️</span> Admin
       </div>
 
@@ -1099,11 +1099,6 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
             <div class="kpi-label">Tax Deductible</div>
             <div class="kpi-value gold-c" id="kpi-tax">$0.00</div>
             <div class="kpi-trend" id="kpi-tax-sub">0% of total</div>
-          </div>
-          <div class="kpi-card gr">
-            <div class="kpi-label">Avg per Receipt</div>
-            <div class="kpi-value green-c" id="kpi-avg">$0.00</div>
-            <div class="kpi-trend" id="kpi-avg-sub">No data yet</div>
           </div>
         </div>
 
@@ -1418,7 +1413,8 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 /* ─────────────────────────────
    RAILWAY BACKEND BASE URL
 ───────────────────────────── */
-const RAIL = 'https://receiptai-production.up.railway.app';
+const RAIL       = 'https://receiptai-production.up.railway.app';
+const ADMIN_EMAIL = 'ricardohatoum4@gmail.com';
 
 let userPlan     = 'free'; // 'free' | 'pro' — updated after auth/checkout
 let sessionToken = null;   // Supabase JWT — sent as Bearer token to backend API
@@ -1449,9 +1445,10 @@ function showPage(page) {
 
   const nav = document.getElementById('nav-links');
   if (page === 'app') {
-    nav.innerHTML = `
-      <button class="nav-btn ghost" onclick="showSection(document.querySelector('[data-section=admin]'),'admin');loadAdminStats()">⚙ Admin</button>
-      <button class="nav-btn primary" onclick="handleSignOut()">Sign Out</button>`;
+    const isAdmin = currentUser?.email === ADMIN_EMAIL;
+    nav.innerHTML = isAdmin
+      ? `<button class="nav-btn ghost" onclick="showSection(document.querySelector('[data-section=admin]'),'admin');loadAdminStats()">⚙ Admin</button>`
+      : '';
   } else {
     nav.innerHTML = `
       <button class="nav-btn ghost" onclick="showPage('login')">Sign In</button>
@@ -1460,6 +1457,12 @@ function showPage(page) {
 }
 
 function showApp() { showPage('app'); }
+
+function applyAdminVisibility() {
+  const isAdmin = currentUser?.email === ADMIN_EMAIL;
+  const sidebarItem = document.getElementById('sidebar-admin-item');
+  if (sidebarItem) sidebarItem.style.display = isAdmin ? 'flex' : 'none';
+}
 
 async function handleSignOut() {
   const client = sb();
@@ -1540,7 +1543,8 @@ async function openPortal() {
   try {
     const res  = await fetch(`${RAIL}/api/create-portal-session`, {
       method:  'POST',
-      headers: { 'Authorization': `Bearer ${sessionToken}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+      body:    JSON.stringify({ email: currentUser?.email || '' }),
     });
     const json = await res.json();
     if (json.url) { window.location.href = json.url; }
@@ -1609,6 +1613,7 @@ async function submitLogin(e) {
     if (client && json.session) await client.auth.setSession(json.session);
     hideLoading();
     showApp();
+    applyAdminVisibility();
     await loadUserProfile();
     await loadExpenses();
   } catch (err) {
@@ -1648,6 +1653,7 @@ async function submitSignup(e) {
     if (client && json.session) await client.auth.setSession(json.session);
     hideLoading();
     showApp();
+    applyAdminVisibility();
   } catch (err) {
     hideLoading();
     showToast(err.message || 'Sign up failed.', true);
@@ -1852,10 +1858,9 @@ async function saveExpense() {
 }
 
 function updateDashboardKPIs() {
-  const total   = expenses.reduce((s, e) => s + (parseFloat(e.amount.replace(/[^0-9.]/g, '')) || 0), 0);
-  const taxSum  = expenses.reduce((s, e) => s + (parseFloat(e.tax.replace(/[^0-9.]/g, ''))    || 0), 0);
+  const total   = expenses.reduce((s, e) => s + (parseFloat(String(e.amount).replace(/[^0-9.]/g, '')) || 0), 0);
+  const taxSum  = expenses.reduce((s, e) => s + (parseFloat(String(e.tax).replace(/[^0-9.]/g, ''))    || 0), 0);
   const count   = expenses.length;
-  const avg     = count ? total / count : 0;
   const taxPct  = total ? Math.round((taxSum / total) * 100) : 0;
 
   document.getElementById('kpi-total').textContent      = '$' + total.toFixed(2);
@@ -1864,8 +1869,6 @@ function updateDashboardKPIs() {
   document.getElementById('kpi-count-sub').textContent  = 'This session';
   document.getElementById('kpi-tax').textContent        = '$' + taxSum.toFixed(2);
   document.getElementById('kpi-tax-sub').textContent    = taxPct + '% of total';
-  document.getElementById('kpi-avg').textContent        = '$' + avg.toFixed(2);
-  document.getElementById('kpi-avg-sub').textContent    = count ? 'Per receipt' : 'No data yet';
 
   // Update bar chart
   updateBarChart();
@@ -1916,11 +1919,34 @@ function updateBarChart() {
 function exportCSV() {
   if (userPlan !== 'pro') { requirePro(); return; }
   if (!expenses.length) { showToast('No saved expenses yet.', true); return; }
-  const rows = [['Vendor','Date','Category','Amount','Tax','Payment','Notes']];
-  expenses.forEach(e => rows.push([e.vendor, e.date, e.category, e.amount, e.tax, e.payment, e.notes]));
-  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+
+  let totalAmt = 0, totalTax = 0;
+  const rows = [['Vendor', 'Date', 'Category', 'Amount ($)', 'Tax ($)', 'Payment', 'Notes']];
+
+  expenses.forEach(e => {
+    const amt = parseFloat(String(e.amount).replace(/[^0-9.]/g, '')) || 0;
+    const tax = parseFloat(String(e.tax).replace(/[^0-9.]/g, ''))    || 0;
+    totalAmt += amt;
+    totalTax += tax;
+    rows.push([
+      e.vendor   || '',
+      e.date     || '',
+      e.category || '',
+      '$' + amt.toFixed(2),
+      tax > 0 ? '$' + tax.toFixed(2) : '',
+      e.payment  || '',
+      e.notes    || '',
+    ]);
+  });
+
+  // Total row
+  rows.push(['', '', 'TOTAL', '$' + totalAmt.toFixed(2), '$' + totalTax.toFixed(2), '', '']);
+
+  const BOM = '﻿'; // UTF-8 BOM — prevents garbled characters in Excel
+  const csv = BOM + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+
   Object.assign(document.createElement('a'), {
-    href:     URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+    href:     URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })),
     download: 'receiptai-expenses.csv',
   }).click();
   showToast('✓ CSV exported!');
@@ -2155,6 +2181,7 @@ function showToast(msg, isErr) {
 
     if (currentUser) {
       showApp();
+      applyAdminVisibility();
       await loadUserProfile();
       await loadExpenses();
     }
