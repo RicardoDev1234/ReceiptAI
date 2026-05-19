@@ -121,7 +121,7 @@ window.STRIPE_PUBLISHABLE_KEY = ${JSON.stringify(process.env.STRIPE_PUBLISHABLE_
 /* ── POST /api/signup ── */
 app.post('/api/signup', async (req, res) => {
   try {
-    const { email, password, fullName } = req.body;
+    const { email, password, fullName, country } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password are required.' });
 
     const supabase = getSupabase();
@@ -139,6 +139,7 @@ app.post('/api/signup', async (req, res) => {
         full_name:   fullName || '',
         plan:        'free_trial',
         trial_start: new Date().toISOString(),
+        country:     country  || '',
       });
       if (dbErr) console.warn('[Supabase users insert]', dbErr.message);
     }
@@ -283,6 +284,8 @@ app.get('/api/admin/stats', async (req, res) => {
 /* ── GET /api/setup-db — create expenses table + RLS policies ── */
 app.get('/api/setup-db', async (req, res) => {
   const sql = `
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS country TEXT DEFAULT '';
+
 CREATE TABLE IF NOT EXISTS public.expenses (
   id         UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id    UUID          NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -339,14 +342,15 @@ CREATE POLICY "Users can delete own expenses"
 /* ── POST /api/create-portal-session — Stripe customer portal ── */
 app.post('/api/create-portal-session', async (req, res) => {
   try {
-    const user = await getAuthUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    const user  = await getAuthUser(req);
+    const email = user?.email || req.body?.email;
+    if (!email) return res.status(401).json({ error: 'Unauthorized' });
 
     const stripe    = getStripe();
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email, limit: 1 });
     const customerId = customers.data.length > 0
       ? customers.data[0].id
-      : (await stripe.customers.create({ email: user.email })).id;
+      : (await stripe.customers.create({ email })).id;
 
     const baseUrl = process.env.APP_URL || `http://localhost:${PORT}`;
     const session = await stripe.billingPortal.sessions.create({

@@ -527,8 +527,10 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 }
 .kpi-card.g::before { background: linear-gradient(90deg, var(--gold), transparent); }
 .kpi-card.gr::before { background: linear-gradient(90deg, var(--green), transparent); }
+.kpi-card.kpi-main { border-color: var(--green); box-shadow: 0 0 24px rgba(52,211,153,.12); padding: 28px 24px; }
 .kpi-label { font-size: 11px; color: var(--white3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 9px; font-weight: 600; }
 .kpi-value { font-family: 'DM Sans', sans-serif; font-size: 30px; font-weight: 800; }
+.kpi-card.kpi-main .kpi-value { font-size: 42px; }
 .kpi-value.gold-c { color: var(--gold); }
 .kpi-value.green-c { color: var(--green); }
 .kpi-trend { font-size: 12px; color: var(--white3); margin-top: 5px; }
@@ -1014,6 +1016,122 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
           <div class="field-error" id="su-confirm-err">Passwords do not match.</div>
         </div>
 
+        <div class="auth-field">
+          <label for="su-country">Country</label>
+          <div class="input-wrap">
+            <select id="su-country" style="width:100%;background:var(--black2);color:var(--white);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;appearance:none;cursor:pointer">
+              <option value="">Select your country…</option>
+              <option value="AF">Afghanistan</option>
+              <option value="AL">Albania</option>
+              <option value="DZ">Algeria</option>
+              <option value="AR">Argentina</option>
+              <option value="AU">Australia</option>
+              <option value="AT">Austria</option>
+              <option value="AZ">Azerbaijan</option>
+              <option value="BH">Bahrain</option>
+              <option value="BD">Bangladesh</option>
+              <option value="BY">Belarus</option>
+              <option value="BE">Belgium</option>
+              <option value="BM">Bermuda</option>
+              <option value="BO">Bolivia</option>
+              <option value="BA">Bosnia and Herzegovina</option>
+              <option value="BR">Brazil</option>
+              <option value="BN">Brunei</option>
+              <option value="BG">Bulgaria</option>
+              <option value="CA">Canada</option>
+              <option value="KY">Cayman Islands</option>
+              <option value="CL">Chile</option>
+              <option value="CN">China</option>
+              <option value="CO">Colombia</option>
+              <option value="HR">Croatia</option>
+              <option value="CY">Cyprus</option>
+              <option value="CZ">Czech Republic</option>
+              <option value="DK">Denmark</option>
+              <option value="EG">Egypt</option>
+              <option value="EE">Estonia</option>
+              <option value="ET">Ethiopia</option>
+              <option value="FI">Finland</option>
+              <option value="FR">France</option>
+              <option value="GE">Georgia</option>
+              <option value="DE">Germany</option>
+              <option value="GH">Ghana</option>
+              <option value="GR">Greece</option>
+              <option value="GT">Guatemala</option>
+              <option value="HN">Honduras</option>
+              <option value="HK">Hong Kong</option>
+              <option value="HU">Hungary</option>
+              <option value="IS">Iceland</option>
+              <option value="IN">India</option>
+              <option value="ID">Indonesia</option>
+              <option value="IE">Ireland</option>
+              <option value="IL">Israel</option>
+              <option value="IT">Italy</option>
+              <option value="JM">Jamaica</option>
+              <option value="JP">Japan</option>
+              <option value="JO">Jordan</option>
+              <option value="KZ">Kazakhstan</option>
+              <option value="KE">Kenya</option>
+              <option value="KW">Kuwait</option>
+              <option value="LV">Latvia</option>
+              <option value="LB">Lebanon</option>
+              <option value="LT">Lithuania</option>
+              <option value="LU">Luxembourg</option>
+              <option value="MY">Malaysia</option>
+              <option value="MV">Maldives</option>
+              <option value="MT">Malta</option>
+              <option value="MX">Mexico</option>
+              <option value="MD">Moldova</option>
+              <option value="MC">Monaco</option>
+              <option value="MA">Morocco</option>
+              <option value="MZ">Mozambique</option>
+              <option value="MM">Myanmar</option>
+              <option value="NL">Netherlands</option>
+              <option value="NZ">New Zealand</option>
+              <option value="NG">Nigeria</option>
+              <option value="NO">Norway</option>
+              <option value="OM">Oman</option>
+              <option value="PK">Pakistan</option>
+              <option value="PA">Panama</option>
+              <option value="PE">Peru</option>
+              <option value="PH">Philippines</option>
+              <option value="PL">Poland</option>
+              <option value="PT">Portugal</option>
+              <option value="QA">Qatar</option>
+              <option value="RO">Romania</option>
+              <option value="RU">Russia</option>
+              <option value="SA">Saudi Arabia</option>
+              <option value="RS">Serbia</option>
+              <option value="SG">Singapore</option>
+              <option value="SK">Slovakia</option>
+              <option value="SI">Slovenia</option>
+              <option value="ZA">South Africa</option>
+              <option value="KR">South Korea</option>
+              <option value="ES">Spain</option>
+              <option value="LK">Sri Lanka</option>
+              <option value="SE">Sweden</option>
+              <option value="CH">Switzerland</option>
+              <option value="TW">Taiwan</option>
+              <option value="TZ">Tanzania</option>
+              <option value="TH">Thailand</option>
+              <option value="TN">Tunisia</option>
+              <option value="TR">Turkey</option>
+              <option value="UG">Uganda</option>
+              <option value="UA">Ukraine</option>
+              <option value="AE">United Arab Emirates</option>
+              <option value="GB">United Kingdom</option>
+              <option value="US">United States</option>
+              <option value="UY">Uruguay</option>
+              <option value="UZ">Uzbekistan</option>
+              <option value="VU">Vanuatu</option>
+              <option value="VE">Venezuela</option>
+              <option value="VN">Vietnam</option>
+              <option value="ZM">Zambia</option>
+              <option value="ZW">Zimbabwe</option>
+            </select>
+          </div>
+          <div class="field-error" id="su-country-err">Please select your country.</div>
+        </div>
+
         <button type="submit" class="auth-submit">Start Free Trial →</button>
       </form>
 
@@ -1086,16 +1204,16 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 
         <div class="kpi-grid">
           <div class="kpi-card g">
-            <div class="kpi-label">Total Spent</div>
-            <div class="kpi-value gold-c" id="kpi-total">$0.00</div>
-            <div class="kpi-trend" id="kpi-total-sub">No expenses yet</div>
-          </div>
-          <div class="kpi-card gr">
             <div class="kpi-label">Receipts Logged</div>
-            <div class="kpi-value green-c" id="kpi-count">0</div>
+            <div class="kpi-value gold-c" id="kpi-count">0</div>
             <div class="kpi-trend" id="kpi-count-sub">This month</div>
           </div>
-          <div class="kpi-card g">
+          <div class="kpi-card gr kpi-main">
+            <div class="kpi-label">Total Spent</div>
+            <div class="kpi-value green-c" id="kpi-total">$0.00</div>
+            <div class="kpi-trend" id="kpi-total-sub">No expenses yet</div>
+          </div>
+          <div class="kpi-card g" id="kpi-tax-card">
             <div class="kpi-label">Tax Deductible</div>
             <div class="kpi-value gold-c" id="kpi-tax">$0.00</div>
             <div class="kpi-trend" id="kpi-tax-sub">0% of total</div>
@@ -1416,8 +1534,17 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 const RAIL       = 'https://receiptai-production.up.railway.app';
 const ADMIN_EMAIL = 'ricardohatoum4@gmail.com';
 
+/* Countries with no personal income tax — hide Tax Deductible KPI for these */
+const NO_TAX_COUNTRIES = ['AE','QA','KW','BH','SA','OM','KY','BM','MC','VU','BN'];
+
 let userPlan     = 'free'; // 'free' | 'pro' — updated after auth/checkout
+let userCountry  = '';     // ISO 3166-1 alpha-2 code, set after login/signup
 let sessionToken = null;   // Supabase JWT — sent as Bearer token to backend API
+
+function applyTaxVisibility() {
+  const taxCard = document.getElementById('kpi-tax-card');
+  if (taxCard) taxCard.style.display = NO_TAX_COUNTRIES.includes(userCountry) ? 'none' : '';
+}
 
 /* ─────────────────────────────
    SUPABASE CLIENT
@@ -1631,11 +1758,13 @@ async function submitSignup(e) {
   const email   = document.getElementById('su-email').value.trim();
   const pass    = document.getElementById('su-pass').value;
   const confirm = document.getElementById('su-confirm').value;
+  const country = document.getElementById('su-country').value;
   let ok = true;
   ok = setErr('su-name',    'su-name-err',    name.length < 2)                 && ok;
   ok = setErr('su-email',   'su-email-err',   !isEmail(email))                 && ok;
   ok = setErr('su-pass',    'su-pass-err',    pass.length < 8)                 && ok;
   ok = setErr('su-confirm', 'su-confirm-err', pass !== confirm || pass === '') && ok;
+  ok = setErr('su-country', 'su-country-err', !country)                        && ok;
   if (!ok) return;
 
   showLoading('Creating your account…');
@@ -1643,15 +1772,17 @@ async function submitSignup(e) {
     const res  = await fetch(`${RAIL}/api/signup`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email, password: pass, fullName: name }),
+      body:    JSON.stringify({ email, password: pass, fullName: name, country }),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Sign up failed.');
     currentUser  = json.user;
     sessionToken = json.session?.access_token || null;
+    userCountry  = country;
     const client = sb();
     if (client && json.session) await client.auth.setSession(json.session);
     hideLoading();
+    applyTaxVisibility();
     showApp();
     applyAdminVisibility();
   } catch (err) {
@@ -2037,8 +2168,9 @@ function exportExcel() {
 async function loadUserProfile() {
   const client = sb();
   if (!client || !currentUser) return;
-  const { data } = await client.from('users').select('plan').eq('id', currentUser.id).single();
+  const { data } = await client.from('users').select('plan, country').eq('id', currentUser.id).single();
   if (data?.plan === 'pro') setUserPlan('pro');
+  if (data?.country) { userCountry = data.country; applyTaxVisibility(); }
 }
 
 async function loadExpenses() {
