@@ -1239,9 +1239,9 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
             <h3>By Category <span class="pro-badge">🔒 Pro</span></h3>
             <p>Deep dive into any spending category across any time period you choose.</p>
           </div>
-          <div class="report-card" onclick="exportCSV()">
+          <div class="report-card locked" id="rc-csv" onclick="exportCSV()">
             <div class="ri">⬇</div>
-            <h3>Export CSV</h3>
+            <h3>Export CSV <span class="pro-badge">🔒 Pro</span></h3>
             <p>Download a spreadsheet-ready CSV of all your expenses with every data field included.</p>
           </div>
           <div class="report-card locked" id="excel-card" onclick="exportExcel()">
@@ -1846,6 +1846,7 @@ function updateBarChart() {
    EXPORT CSV
 ───────────────────────────── */
 function exportCSV() {
+  if (userPlan !== 'pro') { requirePro(); return; }
   if (!expenses.length) { showToast('No saved expenses yet.', true); return; }
   const rows = [['Vendor','Date','Category','Amount','Tax','Payment','Notes']];
   expenses.forEach(e => rows.push([e.vendor, e.date, e.category, e.amount, e.tax, e.payment, e.notes]));
@@ -1868,7 +1869,7 @@ function requirePro() {
 
 function setUserPlan(plan) {
   userPlan = plan;
-  const proCards = ['rc-monthly', 'rc-annual', 'rc-category', 'excel-card'];
+  const proCards = ['rc-monthly', 'rc-annual', 'rc-category', 'rc-csv', 'excel-card'];
   proCards.forEach(id => {
     const card = document.getElementById(id);
     if (!card) return;
