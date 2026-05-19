@@ -226,62 +226,82 @@ nav {
 
 /* PRICING */
 .pricing-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 22px; margin-top: 52px; max-width: 680px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px; margin-top: 52px; max-width: 740px;
 }
 .pricing-card {
   background: var(--black3); border: 1px solid var(--border2);
-  border-radius: 22px; padding: 36px; position: relative; transition: all 0.3s;
+  border-radius: 26px; padding: 44px; position: relative; transition: all 0.3s;
 }
-.pricing-card:hover { transform: translateY(-4px); }
+.pricing-card:hover { transform: translateY(-5px); box-shadow: 0 20px 60px #00000055; }
 .pricing-card.popular {
-  border-color: var(--gold); background: var(--black2);
-  box-shadow: 0 0 0 1px var(--gold), 0 24px 64px #C9A84C18;
+  background: linear-gradient(160deg, #161208 0%, var(--black2) 100%);
+  border: 1.5px solid var(--gold);
+  box-shadow: 0 0 0 1px var(--gold3), 0 0 50px #C9A84C22, 0 32px 80px #C9A84C14;
+  animation: gold-glow 3s ease-in-out infinite;
+}
+@keyframes gold-glow {
+  0%, 100% { box-shadow: 0 0 0 1px var(--gold3), 0 0 50px #C9A84C22, 0 32px 80px #C9A84C14; }
+  50%       { box-shadow: 0 0 0 1px var(--gold),  0 0 70px #C9A84C38, 0 32px 80px #C9A84C20; }
 }
 .popular-badge {
-  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
   background: linear-gradient(135deg, var(--gold), var(--gold2));
   color: var(--black); font-size: 10.5px; font-weight: 800;
-  padding: 4px 18px; border-radius: 100px; white-space: nowrap;
-  letter-spacing: 0.8px; text-transform: uppercase;
+  padding: 5px 20px; border-radius: 100px; white-space: nowrap;
+  letter-spacing: 1px; text-transform: uppercase;
+  box-shadow: 0 4px 16px #C9A84C55;
 }
+.save-banner {
+  display: none; background: var(--green-dim); border: 1px solid #2EAD2250;
+  border-radius: 10px; padding: 10px 16px; text-align: center;
+  font-size: 13.5px; font-weight: 700; color: var(--green);
+  margin-bottom: 20px; letter-spacing: 0.2px;
+}
+.pricing-trust {
+  text-align: center; margin-top: 28px;
+  font-size: 12.5px; color: var(--white3); font-weight: 400; line-height: 1.8;
+}
+.pricing-trust span { color: var(--gold3); }
 
 .plan-name {
-  font-size: 11.5px; font-weight: 700; color: var(--white3);
-  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px;
+  font-size: 11px; font-weight: 700; color: var(--white3);
+  text-transform: uppercase; letter-spacing: 2px; margin-bottom: 18px;
 }
 .plan-price {
   font-family: 'Playfair Display', serif;
-  font-size: 52px; font-weight: 900; color: var(--white); line-height: 1;
+  font-size: 58px; font-weight: 900; color: var(--white); line-height: 1;
 }
-.plan-price sup { font-size: 22px; vertical-align: super; }
+.plan-price sup { font-size: 24px; vertical-align: super; }
 .plan-price sub {
   font-size: 16px; font-weight: 400; color: var(--white2);
   font-family: 'DM Sans', sans-serif; vertical-align: baseline;
 }
-.plan-note { font-size: 12.5px; color: var(--white3); margin: 8px 0 24px; min-height: 18px; }
-.plan-divider { height: 1px; background: var(--border2); margin-bottom: 22px; }
-.plan-features { list-style: none; margin-bottom: 30px; }
+.plan-note { font-size: 12.5px; color: var(--white3); margin: 10px 0 26px; min-height: 18px; }
+.plan-divider { height: 1px; background: var(--border2); margin-bottom: 24px; }
+.plan-features { list-style: none; margin-bottom: 32px; }
 .plan-features li {
-  font-size: 13.5px; color: var(--white2); padding: 8px 0;
-  display: flex; align-items: flex-start; gap: 9px; font-weight: 400;
+  font-size: 13.5px; color: var(--white2); padding: 9px 0;
+  display: flex; align-items: flex-start; gap: 10px; font-weight: 400;
   border-bottom: 1px solid var(--border2);
 }
 .plan-features li:last-child { border-bottom: none; }
 .plan-features li .chk { color: var(--green); font-weight: 700; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.plan-features li .chk.gold { color: var(--gold); }
 
 .plan-btn {
-  width: 100%; padding: 14px; border-radius: 11px;
-  font-size: 14px; font-weight: 700; cursor: pointer;
+  width: 100%; padding: 15px; border-radius: 12px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
   border: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.2px;
 }
 .plan-btn.gold-btn {
   background: linear-gradient(135deg, var(--gold), var(--gold2));
   color: var(--black);
 }
-.plan-btn.gold-btn:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 20px var(--gold-glow); }
+.plan-btn.gold-btn:hover { opacity: 0.92; transform: translateY(-2px); box-shadow: 0 8px 28px var(--gold-glow); }
 .plan-btn.outline-btn {
-  background: transparent; color: var(--white);
+  background: transparent; color: var(--white2);
   border: 1px solid var(--border2);
 }
 .plan-btn.outline-btn:hover { border-color: var(--gold); color: var(--gold); }
@@ -822,7 +842,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
   <div class="section">
     <div class="section-eyebrow">Pricing</div>
     <div class="section-title">Simple, honest <span class="gold">pricing</span></div>
-    <div class="section-sub">One plan. Full access. Start free — no card needed.</div>
+    <div class="section-sub">Start free for 7 days. No credit card. Cancel anytime.</div>
     <div class="toggle-row">
       <span class="toggle-lbl on" id="lbl-monthly">Monthly</span>
       <div class="toggle-track" id="billing-toggle" onclick="toggleBilling()">
@@ -831,26 +851,45 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <span class="toggle-lbl" id="lbl-yearly">Yearly</span>
       <span class="save-badge" id="save-badge" style="display:none">Save 37%</span>
     </div>
-    <div class="pricing-grid" style="max-width:420px">
+    <div class="pricing-grid">
+
+      <!-- FREE TRIAL -->
+      <div class="pricing-card">
+        <div class="plan-name">Free Trial</div>
+        <div class="plan-price"><sup>$</sup>0<sub>/mo</sub></div>
+        <div class="plan-note">7 days free · No credit card needed</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="chk">✓</span>Full app access for 7 days</li>
+          <li><span class="chk">✓</span>Unlimited AI receipt scanning</li>
+          <li><span class="chk">✓</span>Dashboard &amp; expense tracking</li>
+          <li><span class="chk">✓</span>No credit card required</li>
+          <li><span class="chk">✓</span>Cancel before 7 days — pay nothing</li>
+        </ul>
+        <button class="plan-btn outline-btn" onclick="showPage('signup')">Start Free Trial</button>
+      </div>
+
+      <!-- PRO -->
       <div class="pricing-card popular">
-        <div class="popular-badge">7-Day Free Trial</div>
+        <div class="popular-badge">✦ Most Popular</div>
         <div class="plan-name">Pro</div>
         <div class="plan-price" id="pro-price"><sup>$</sup>7.99<sub>/mo</sub></div>
         <div class="plan-note" id="pro-note">Billed monthly · Cancel anytime</div>
-        <p style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:22px">Start with a free 7-day trial — no credit card required</p>
+        <div class="save-banner" id="yearly-banner">🎉 You save $35.89 per year</div>
         <div class="plan-divider"></div>
         <ul class="plan-features">
-          <li><span class="chk">✓</span>Unlimited receipts &amp; AI scanning</li>
-          <li><span class="chk">✓</span>Smart dashboard &amp; analytics</li>
-          <li><span class="chk">✓</span>Tax report generator</li>
-          <li><span class="chk">✓</span>Excel &amp; CSV export</li>
-          <li><span class="chk">✓</span>Multi-currency support</li>
-          <li><span class="chk">✓</span>Priority support &amp; all future features</li>
+          <li><span class="chk gold">✦</span>Everything in Free Trial</li>
+          <li><span class="chk gold">✦</span>Unlimited receipts &amp; AI scanning</li>
+          <li><span class="chk gold">✦</span>Advanced dashboard &amp; analytics</li>
+          <li><span class="chk gold">✦</span>Tax report generator</li>
+          <li><span class="chk gold">✦</span>Excel &amp; CSV export</li>
+          <li><span class="chk gold">✦</span>Priority support &amp; all future features</li>
         </ul>
-        <button class="plan-btn gold-btn" onclick="startCheckout()">Start Free Trial →</button>
-        <p style="font-size:11.5px;color:var(--white3);text-align:center;margin-top:14px">After 7 days, $7.99/mo or $59.99/year. Cancel anytime.</p>
+        <button class="plan-btn gold-btn" onclick="startCheckout()">Start 7-Day Free Trial →</button>
       </div>
+
     </div>
+    <p class="pricing-trust">No credit card required to start &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; <span>7-day free trial included on Pro</span></p>
   </div>
 
   <!-- CTA STRIP -->
@@ -1467,6 +1506,9 @@ function applyBillingState() {
   const bpp = document.getElementById('b-pro-price');
   const bpn = document.getElementById('b-pro-note');
   const btn = document.getElementById('b-trial-note');
+
+  const yb = document.getElementById('yearly-banner');
+  if (yb) yb.style.display = isYearly ? 'block' : 'none';
 
   if (isYearly) {
     if (pp) pp.innerHTML = '<sup>$</sup>4.99<sub>/mo</sub>';
