@@ -1396,7 +1396,7 @@ async function submitSignup(e) {
     if (client && json.session) await client.auth.setSession(json.session);
     hideLoading(); applyTaxVisibility();
     const pendingPlan = localStorage.getItem('pendingPlan');
-    if (pendingPlan) { localStorage.removeItem('pendingPlan'); isYearly = pendingPlan==='yearly'; await startCheckout(); return; }
+    if (pendingPlan && currentUser) { localStorage.removeItem('pendingPlan'); isYearly = pendingPlan==='yearly'; await startCheckout(); return; }
     showApp(); applyAdminVisibility();
   } catch (err) { hideLoading(); showToast(err.message||'Sign up failed.', true); }
 }
