@@ -5,7 +5,7 @@ const express           = require('express');
 const cors              = require('cors');
 const path              = require('path');
 const fs                = require('fs');
-const Stripe            = require('stripe');
+const fetch             = require('node-fetch');
 const Anthropic         = require('@anthropic-ai/sdk');
 const { createClient }  = require('@supabase/supabase-js');
 
@@ -34,11 +34,28 @@ const corsOptions = {
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
-/* ── Lazy service clients ── */
-function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error('STRIPE_SECRET_KEY is not set in .env');
-  return new Stripe(key);
+/* ── PayPal helpers ── */
+async function getPayPalAccessToken() {
+  const clientId     = process.env.PAYPAL_CLIENT_ID;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  if (!clientId || !clientSecret) throw new Error('PayPal credentials not configured');
+
+  const base = process.env.PAYPAL_MODE === 'live'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com';
+
+  const res = await fetch(`${base}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64'),
+    },
+    body: 'grant_type=client_credentials',
+  });
+
+  const data = await res.json();
+  if (!data.access_token) throw new Error('Failed to get PayPal access token');
+  return { token: data.access_token, base };
 }
 
 function getAnthropic() {
@@ -66,54 +83,16 @@ async function getAuthUser(req) {
 /* ── GET /health ── */
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
-/* ── POST /api/webhook — Stripe (raw body BEFORE express.json) ── */
-app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig    = req.headers['stripe-signature'];
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!secret) {
-    console.error('[Webhook] STRIPE_WEBHOOK_SECRET not set');
-    return res.status(500).json({ error: 'Webhook secret not configured' });
-  }
-
-  let event;
-  try {
-    event = getStripe().webhooks.constructEvent(req.body, sig, secret);
-  } catch (err) {
-    console.error('[Webhook] Signature verification failed:', err.message);
-    return res.status(400).json({ error: `Webhook error: ${err.message}` });
-  }
-
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const email   = session.customer_email || session.customer_details?.email;
-
-    if (email) {
-      const { error } = await getSupabase()
-        .from('users')
-        .update({ plan: 'pro' })
-        .eq('email', email);
-
-      if (error) console.error('[Webhook] Failed to update plan:', error.message);
-      else console.log('[Webhook] Plan → pro for:', email);
-    } else {
-      console.warn('[Webhook] checkout.session.completed — no email found in session');
-    }
-  }
-
-  res.json({ received: true });
-});
-
-/* ── JSON body parser (after webhook route) ── */
+/* ── JSON body parser ── */
 app.use(express.json({ limit: '20mb' }));
 
 /* ── GET / — serve index.html with injected public config ── */
 app.get('/', (req, res) => {
   const html      = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   const injection = `<script>
-window.SUPABASE_URL           = ${JSON.stringify(process.env.SUPABASE_URL           || '')};
-window.SUPABASE_ANON_KEY      = ${JSON.stringify(process.env.SUPABASE_ANON_KEY      || '')};
-window.STRIPE_PUBLISHABLE_KEY = ${JSON.stringify(process.env.STRIPE_PUBLISHABLE_KEY || '')};
+window.SUPABASE_URL           = ${JSON.stringify(process.env.SUPABASE_URL      || '')};
+window.SUPABASE_ANON_KEY      = ${JSON.stringify(process.env.SUPABASE_ANON_KEY || '')};
+window.PAYPAL_CLIENT_ID       = ${JSON.stringify(process.env.PAYPAL_CLIENT_ID  || '')};
 </script>`;
   res.send(html.replace('</head>', injection + '\n</head>'));
 });
@@ -167,32 +146,144 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-/* ── POST /api/create-checkout-session ── */
+/* ── POST /api/create-checkout-session — PayPal subscription ── */
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
     const { plan, email } = req.body;
-    const priceId = plan === 'yearly'
-      ? process.env.STRIPE_PRICE_YEARLY
-      : process.env.STRIPE_PRICE_MONTHLY;
 
-    if (!priceId) {
-      return res.status(500).json({ error: 'Stripe price ID not configured. Set STRIPE_PRICE_MONTHLY / STRIPE_PRICE_YEARLY in .env' });
+    const planId = plan === 'yearly'
+      ? process.env.PAYPAL_PLAN_ID_YEARLY
+      : process.env.PAYPAL_PLAN_ID_MONTHLY;
+
+    if (!planId) {
+      return res.status(500).json({ error: 'PayPal plan ID not configured.' });
     }
 
+    const { token, base } = await getPayPalAccessToken();
     const baseUrl = process.env.APP_URL || `http://localhost:${PORT}`;
-    const session = await getStripe().checkout.sessions.create({
-      mode:                 'subscription',
-      payment_method_types: ['card'],
-      customer_email:       email || undefined,
-      line_items:           [{ price: priceId, quantity: 1 }],
-      subscription_data:    { trial_period_days: 7 },
-      success_url:          `${baseUrl}/?checkout=success`,
-      cancel_url:           `${baseUrl}/`,
+
+    const response = await fetch(`${base}/v1/billing/subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Prefer':        'return=representation',
+      },
+      body: JSON.stringify({
+        plan_id:    planId,
+        subscriber: { email_address: email || undefined },
+        application_context: {
+          brand_name:          'ReceiptAI',
+          locale:              'en-US',
+          shipping_preference: 'NO_SHIPPING',
+          user_action:         'SUBSCRIBE_NOW',
+          return_url:          `${baseUrl}/?checkout=success`,
+          cancel_url:          `${baseUrl}/`,
+        },
+      }),
     });
 
-    res.json({ url: session.url });
+    const subscription = await response.json();
+
+    if (!subscription.id) {
+      console.error('[PayPal] Failed to create subscription:', subscription);
+      return res.status(500).json({ error: 'Failed to create PayPal subscription' });
+    }
+
+    // Find the approval URL to redirect user to
+    const approvalUrl = subscription.links?.find(l => l.rel === 'approve')?.href;
+    if (!approvalUrl) {
+      return res.status(500).json({ error: 'No approval URL returned from PayPal' });
+    }
+
+    res.json({ url: approvalUrl, subscriptionId: subscription.id });
   } catch (err) {
-    console.error('[Stripe]', err.message);
+    console.error('[PayPal create-checkout-session]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ── POST /api/paypal-webhook — PayPal subscription events ── */
+app.post('/api/paypal-webhook', async (req, res) => {
+  try {
+    const event     = req.body;
+    const eventType = event.event_type;
+
+    console.log('[PayPal Webhook] Event:', eventType);
+
+    // When a subscription is activated — upgrade user to pro
+    if (eventType === 'BILLING.SUBSCRIPTION.ACTIVATED') {
+      const email = event.resource?.subscriber?.email_address;
+
+      if (email) {
+        const { error } = await getSupabase()
+          .from('users')
+          .update({ plan: 'pro' })
+          .eq('email', email);
+
+        if (error) console.error('[Webhook] Failed to update plan:', error.message);
+        else console.log('[Webhook] Plan → pro for:', email);
+      }
+    }
+
+    // When a subscription is cancelled — downgrade user to free
+    if (
+      eventType === 'BILLING.SUBSCRIPTION.CANCELLED' ||
+      eventType === 'BILLING.SUBSCRIPTION.EXPIRED'
+    ) {
+      const email = event.resource?.subscriber?.email_address;
+
+      if (email) {
+        const { error } = await getSupabase()
+          .from('users')
+          .update({ plan: 'free' })
+          .eq('email', email);
+
+        if (error) console.error('[Webhook] Failed to downgrade plan:', error.message);
+        else console.log('[Webhook] Plan → free for:', email);
+      }
+    }
+
+    res.json({ received: true });
+  } catch (err) {
+    console.error('[PayPal Webhook]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ── POST /api/cancel-subscription — cancel user's PayPal subscription ── */
+app.post('/api/cancel-subscription', async (req, res) => {
+  try {
+    const user = await getAuthUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { subscriptionId } = req.body;
+    if (!subscriptionId) return res.status(400).json({ error: 'subscriptionId is required' });
+
+    const { token, base } = await getPayPalAccessToken();
+
+    const response = await fetch(`${base}/v1/billing/subscriptions/${subscriptionId}/cancel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ reason: 'User requested cancellation' }),
+    });
+
+    if (response.status === 204) {
+      await getSupabase()
+        .from('users')
+        .update({ plan: 'free' })
+        .eq('id', user.id);
+
+      return res.json({ success: true });
+    }
+
+    const data = await response.json();
+    res.status(400).json({ error: data.message || 'Failed to cancel subscription' });
+  } catch (err) {
+    console.error('[cancel-subscription]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -248,7 +339,7 @@ app.post('/api/expenses', async (req, res) => {
   }
 });
 
-/* ── GET /api/admin/stats — real data for admin dashboard ── */
+/* ── GET /api/admin/stats ── */
 app.get('/api/admin/stats', async (req, res) => {
   try {
     const supabase = getSupabase();
@@ -281,7 +372,7 @@ app.get('/api/admin/stats', async (req, res) => {
   }
 });
 
-/* ── GET /api/setup-db — create expenses table + RLS policies ── */
+/* ── GET /api/setup-db ── */
 app.get('/api/setup-db', async (req, res) => {
   const sql = `
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS country TEXT DEFAULT '';
@@ -301,7 +392,6 @@ CREATE TABLE IF NOT EXISTS public.expenses (
 );
 
 ALTER TABLE public.expenses ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'manual';
-
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can read own expenses"   ON public.expenses;
@@ -311,13 +401,10 @@ DROP POLICY IF EXISTS "Users can delete own expenses" ON public.expenses;
 
 CREATE POLICY "Users can read own expenses"
   ON public.expenses FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own expenses"
   ON public.expenses FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own expenses"
   ON public.expenses FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own expenses"
   ON public.expenses FOR DELETE USING (auth.uid() = user_id);
 `.trim();
@@ -329,43 +416,14 @@ CREATE POLICY "Users can delete own expenses"
       const pool = new Pool({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
       await pool.query(sql);
       await pool.end();
-      return res.json({ success: true, message: 'Expenses table and RLS policies created successfully.' });
+      return res.json({ success: true, message: 'DB setup complete.' });
     } catch (err) {
       console.error('[setup-db]', err.message);
       return res.status(500).json({ error: err.message, sql });
     }
   }
 
-  res.json({
-    message: 'DATABASE_URL not set — run this SQL manually in Supabase Dashboard → SQL Editor:',
-    sql,
-  });
-});
-
-/* ── POST /api/create-portal-session — Stripe customer portal ── */
-app.post('/api/create-portal-session', async (req, res) => {
-  try {
-    const user  = await getAuthUser(req);
-    const email = user?.email || req.body?.email;
-    if (!email) return res.status(401).json({ error: 'Unauthorized' });
-
-    const stripe    = getStripe();
-    const customers = await stripe.customers.list({ email, limit: 1 });
-    const customerId = customers.data.length > 0
-      ? customers.data[0].id
-      : (await stripe.customers.create({ email })).id;
-
-    const baseUrl = process.env.APP_URL || `http://localhost:${PORT}`;
-    const session = await stripe.billingPortal.sessions.create({
-      customer:   customerId,
-      return_url: baseUrl + '/',
-    });
-
-    res.json({ url: session.url });
-  } catch (err) {
-    console.error('[create-portal-session]', err.message);
-    res.status(500).json({ error: err.message });
-  }
+  res.json({ message: 'Run this SQL in Supabase Dashboard → SQL Editor:', sql });
 });
 
 /* ── POST /api/analyze-receipt ── */
@@ -383,8 +441,6 @@ app.post('/api/analyze-receipt', async (req, res) => {
         error: `Unsupported mediaType "${mediaType}". Must be one of: ${validTypes.join(', ')}`,
       });
     }
-
-    console.log(`[analyze-receipt] mediaType=${mediaType} base64Length=${base64.length}`);
 
     const msg = await getAnthropic().messages.create({
       model:      'claude-sonnet-4-6',
@@ -414,20 +470,18 @@ app.post('/api/analyze-receipt', async (req, res) => {
 
     const text  = msg.content.map(b => b.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
-    console.log('[analyze-receipt] AI response:', clean);
 
     let result;
     try {
       result = JSON.parse(clean);
     } catch (parseErr) {
-      console.error('[analyze-receipt] JSON parse failed. Raw text:', clean);
       return res.status(500).json({ error: 'AI returned non-JSON response.', raw: clean.slice(0, 300) });
     }
 
     res.json(result);
   } catch (err) {
-    console.error('[analyze-receipt] status=%s message=%s', err.status ?? 'n/a', err.message);
-    res.status(500).json({ error: err.message || 'Failed to analyze receipt', status: err.status });
+    console.error('[analyze-receipt]', err.message);
+    res.status(500).json({ error: err.message || 'Failed to analyze receipt' });
   }
 });
 
