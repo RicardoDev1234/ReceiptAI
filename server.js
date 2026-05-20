@@ -20,7 +20,8 @@ const ALLOWED_ORIGINS = [
 
 const corsOptions = {
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true);
+    // Allow requests with no origin OR explicit 'null' origin (file://, redirects, mobile)
+    if (!origin || origin === 'null') return cb(null, true);
     if (ALLOWED_ORIGINS.includes(origin) || /\.vercel\.app$/.test(origin)) {
       return cb(null, true);
     }
@@ -160,7 +161,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 
     const { token, base } = await getPayPalAccessToken();
-    const baseUrl = process.env.APP_URL || `http://localhost:${PORT}`;
+    const baseUrl = process.env.APP_URL || `https://receipt-ai-coral.vercel.app`;
 
     const response = await fetch(`${base}/v1/billing/subscriptions`, {
       method: 'POST',
@@ -190,7 +191,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
       return res.status(500).json({ error: 'Failed to create PayPal subscription' });
     }
 
-    // Find the approval URL to redirect user to
     const approvalUrl = subscription.links?.find(l => l.rel === 'approve')?.href;
     if (!approvalUrl) {
       return res.status(500).json({ error: 'No approval URL returned from PayPal' });
@@ -211,34 +211,19 @@ app.post('/api/paypal-webhook', async (req, res) => {
 
     console.log('[PayPal Webhook] Event:', eventType);
 
-    // When a subscription is activated — upgrade user to pro
     if (eventType === 'BILLING.SUBSCRIPTION.ACTIVATED') {
       const email = event.resource?.subscriber?.email_address;
-
       if (email) {
-        const { error } = await getSupabase()
-          .from('users')
-          .update({ plan: 'pro' })
-          .eq('email', email);
-
+        const { error } = await getSupabase().from('users').update({ plan: 'pro' }).eq('email', email);
         if (error) console.error('[Webhook] Failed to update plan:', error.message);
         else console.log('[Webhook] Plan → pro for:', email);
       }
     }
 
-    // When a subscription is cancelled — downgrade user to free
-    if (
-      eventType === 'BILLING.SUBSCRIPTION.CANCELLED' ||
-      eventType === 'BILLING.SUBSCRIPTION.EXPIRED'
-    ) {
+    if (eventType === 'BILLING.SUBSCRIPTION.CANCELLED' || eventType === 'BILLING.SUBSCRIPTION.EXPIRED') {
       const email = event.resource?.subscriber?.email_address;
-
       if (email) {
-        const { error } = await getSupabase()
-          .from('users')
-          .update({ plan: 'free' })
-          .eq('email', email);
-
+        const { error } = await getSupabase().from('users').update({ plan: 'free' }).eq('email', email);
         if (error) console.error('[Webhook] Failed to downgrade plan:', error.message);
         else console.log('[Webhook] Plan → free for:', email);
       }
@@ -247,6 +232,25 @@ app.post('/api/paypal-webhook', async (req, res) => {
     res.json({ received: true });
   } catch (err) {
     console.error('[PayPal Webhook]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ── POST /api/activate-pro — called after successful PayPal checkout ── */
+app.post('/api/activate-pro', async (req, res) => {
+  try {
+    const user = await getAuthUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { error } = await getSupabase()
+      .from('users')
+      .update({ plan: 'pro' })
+      .eq('id', user.id);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[activate-pro]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -272,11 +276,7 @@ app.post('/api/cancel-subscription', async (req, res) => {
     });
 
     if (response.status === 204) {
-      await getSupabase()
-        .from('users')
-        .update({ plan: 'free' })
-        .eq('id', user.id);
-
+      await getSupabase().from('users').update({ plan: 'free' }).eq('id', user.id);
       return res.json({ success: true });
     }
 
@@ -288,7 +288,7 @@ app.post('/api/cancel-subscription', async (req, res) => {
   }
 });
 
-/* ── GET /api/expenses — fetch authenticated user's expenses ── */
+/* ── GET /api/expenses ── */
 app.get('/api/expenses', async (req, res) => {
   try {
     const user = await getAuthUser(req);
@@ -308,7 +308,7 @@ app.get('/api/expenses', async (req, res) => {
   }
 });
 
-/* ── POST /api/expenses — save a new expense ── */
+/* ── POST /api/expenses ── */
 app.post('/api/expenses', async (req, res) => {
   try {
     const user = await getAuthUser(req);
@@ -343,7 +343,6 @@ app.post('/api/expenses', async (req, res) => {
 app.get('/api/admin/stats', async (req, res) => {
   try {
     const supabase = getSupabase();
-
     const [
       { count: totalUsers },
       { count: proUsers },
@@ -353,10 +352,7 @@ app.get('/api/admin/stats', async (req, res) => {
       supabase.from('users').select('*', { count: 'exact', head: true }),
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('plan', 'pro'),
       supabase.from('expenses').select('*', { count: 'exact', head: true }),
-      supabase.from('users')
-        .select('full_name, email, plan, created_at')
-        .order('created_at', { ascending: false })
-        .limit(10),
+      supabase.from('users').select('full_name, email, plan, created_at').order('created_at', { ascending: false }).limit(10),
     ]);
 
     res.json({
@@ -376,37 +372,29 @@ app.get('/api/admin/stats', async (req, res) => {
 app.get('/api/setup-db', async (req, res) => {
   const sql = `
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS country TEXT DEFAULT '';
-
 CREATE TABLE IF NOT EXISTS public.expenses (
-  id         UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id    UUID          NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  vendor     TEXT          NOT NULL DEFAULT 'Unknown',
-  date       DATE,
-  amount     NUMERIC(10,2) DEFAULT 0,
-  tax        NUMERIC(10,2) DEFAULT 0,
-  category   TEXT          DEFAULT 'Other',
-  payment    TEXT          DEFAULT '',
-  notes      TEXT          DEFAULT '',
-  source     TEXT          DEFAULT 'manual',
-  created_at TIMESTAMPTZ   DEFAULT NOW()
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  vendor TEXT NOT NULL DEFAULT 'Unknown',
+  date DATE,
+  amount NUMERIC(10,2) DEFAULT 0,
+  tax NUMERIC(10,2) DEFAULT 0,
+  category TEXT DEFAULT 'Other',
+  payment TEXT DEFAULT '',
+  notes TEXT DEFAULT '',
+  source TEXT DEFAULT 'manual',
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
 ALTER TABLE public.expenses ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'manual';
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Users can read own expenses"   ON public.expenses;
+DROP POLICY IF EXISTS "Users can read own expenses" ON public.expenses;
 DROP POLICY IF EXISTS "Users can insert own expenses" ON public.expenses;
 DROP POLICY IF EXISTS "Users can update own expenses" ON public.expenses;
 DROP POLICY IF EXISTS "Users can delete own expenses" ON public.expenses;
-
-CREATE POLICY "Users can read own expenses"
-  ON public.expenses FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own expenses"
-  ON public.expenses FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own expenses"
-  ON public.expenses FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete own expenses"
-  ON public.expenses FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can read own expenses" ON public.expenses FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own expenses" ON public.expenses FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own expenses" ON public.expenses FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own expenses" ON public.expenses FOR DELETE USING (auth.uid() = user_id);
 `.trim();
 
   const dbUrl = process.env.DATABASE_URL;
@@ -422,7 +410,6 @@ CREATE POLICY "Users can delete own expenses"
       return res.status(500).json({ error: err.message, sql });
     }
   }
-
   res.json({ message: 'Run this SQL in Supabase Dashboard → SQL Editor:', sql });
 });
 
@@ -430,31 +417,19 @@ CREATE POLICY "Users can delete own expenses"
 app.post('/api/analyze-receipt', async (req, res) => {
   try {
     const { base64, mediaType } = req.body;
-
-    if (!base64 || !mediaType) {
-      return res.status(400).json({ error: 'Missing base64 or mediaType in request body.' });
-    }
+    if (!base64 || !mediaType) return res.status(400).json({ error: 'Missing base64 or mediaType.' });
 
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(mediaType)) {
-      return res.status(400).json({
-        error: `Unsupported mediaType "${mediaType}". Must be one of: ${validTypes.join(', ')}`,
-      });
-    }
+    if (!validTypes.includes(mediaType)) return res.status(400).json({ error: `Unsupported mediaType "${mediaType}".` });
 
     const msg = await getAnthropic().messages.create({
       model:      'claude-sonnet-4-6',
       max_tokens: 1024,
       messages: [{
-        role:    'user',
+        role: 'user',
         content: [
-          {
-            type:   'image',
-            source: { type: 'base64', media_type: mediaType, data: base64 },
-          },
-          {
-            type: 'text',
-            text: `Extract the following from this receipt and respond ONLY with valid JSON, no other text:
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+          { type: 'text', text: `Extract the following from this receipt and respond ONLY with valid JSON, no other text:
 {
   "vendor": "store or restaurant name",
   "date": "YYYY-MM-DD",
@@ -462,8 +437,7 @@ app.post('/api/analyze-receipt', async (req, res) => {
   "tax": "tax amount with currency symbol or empty string",
   "category": "one of: Food & Drink, Travel, Office Supplies, Software & Subscriptions, Marketing, Utilities, Other",
   "payment": "payment method if visible or empty string"
-}`,
-          },
+}` },
         ],
       }],
     });
@@ -472,11 +446,8 @@ app.post('/api/analyze-receipt', async (req, res) => {
     const clean = text.replace(/```json|```/g, '').trim();
 
     let result;
-    try {
-      result = JSON.parse(clean);
-    } catch (parseErr) {
-      return res.status(500).json({ error: 'AI returned non-JSON response.', raw: clean.slice(0, 300) });
-    }
+    try { result = JSON.parse(clean); }
+    catch { return res.status(500).json({ error: 'AI returned non-JSON response.', raw: clean.slice(0, 300) }); }
 
     res.json(result);
   } catch (err) {
