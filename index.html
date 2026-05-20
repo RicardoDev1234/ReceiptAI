@@ -1268,7 +1268,17 @@ function applyBillingState() {
 
 function toggleBilling()     { isYearly = !isYearly; applyBillingState(); }
 function toggleBillingPage() { isYearly = !isYearly; applyBillingState(); }
-async function startCheckoutFromBilling() { await startCheckout(); }
+async function startCheckoutFromBilling() {
+  if (!currentUser) {
+    const client = sb();
+    if (client) {
+      const { data } = await client.auth.getSession();
+      currentUser = data?.session?.user || null;
+      sessionToken = data?.session?.access_token || null;
+    }
+  }
+  await startCheckout();
+}
 
 async function startCheckout() {
   if (!currentUser) {
