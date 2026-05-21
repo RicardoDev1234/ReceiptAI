@@ -897,9 +897,9 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
         <button type="submit" class="auth-submit">Sign In</button>
       </form>
       <div class="auth-divider"><span>or</span></div>
-      <button class="google-btn" onclick="showApp()">
+      <button class="google-btn" disabled style="opacity:0.4;cursor:not-allowed" title="Google login coming soon">
         <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Continue with Google
+        Continue with Google (coming soon)
       </button>
       <div class="auth-footer">Don't have an account? <a onclick="showPage('signup')">Sign up free</a></div>
     </div>
@@ -961,9 +961,9 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
         <button type="submit" class="auth-submit">Start Free Trial →</button>
       </form>
       <div class="auth-divider"><span>or</span></div>
-      <button class="google-btn" onclick="showApp()">
+      <button class="google-btn" disabled style="opacity:0.4;cursor:not-allowed" title="Google signup coming soon">
         <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Sign up with Google
+        Sign up with Google (coming soon)
       </button>
       <div class="auth-footer">Already have an account? <a onclick="showPage('login')">Sign in</a></div>
     </div>
@@ -1317,11 +1317,10 @@ async function openPortal() {
     }
   }
   if (!sessionToken) { showToast('Please sign in to manage your subscription.', true); return; }
-  const subscriptionId = localStorage.getItem('paypalSubscriptionId');
-  if (!subscriptionId) { showToast('No active subscription found. Please contact support.', true); return; }
   const confirmed = confirm('Are you sure you want to cancel your Pro subscription? You will keep access until the end of your billing period.');
   if (!confirmed) return;
   showLoading('Cancelling subscription\u2026');
+  const subscriptionId = localStorage.getItem('paypalSubscriptionId') || '';
   try {
     const res = await fetch(`${RAIL}/api/cancel-subscription`, {
       method: 'POST',
@@ -1383,8 +1382,11 @@ async function submitLogin(e) {
     sessionToken = json.session?.access_token || null;
     const client = sb();
     if (client && json.session) await client.auth.setSession(json.session);
-    hideLoading(); showApp(); applyAdminVisibility();
+    hideLoading(); applyAdminVisibility();
     await loadUserProfile(); await loadExpenses();
+    const pendingPlan = localStorage.getItem('pendingPlan');
+    if (pendingPlan && currentUser) { localStorage.removeItem('pendingPlan'); isYearly = pendingPlan==='yearly'; await startCheckout(); return; }
+    showApp();
   } catch (err) { hideLoading(); showToast(err.message||'Sign in failed.', true); }
 }
 
@@ -1532,7 +1534,7 @@ const BAR_COLORS={'Food & Drink':'var(--gold)','Travel':'var(--green)','Office S
 function updateBarChart() {
   const chart=document.getElementById('chart-bars'); if(!chart) return;
   const totals={};
-  expenses.forEach(e=>{const amt=parseFloat(e.amount.replace(/[^0-9.]/g,''))||0;totals[e.category]=(totals[e.category]||0)+amt;});
+  expenses.forEach(e=>{const amt=parseFloat(String(e.amount).replace(/[^0-9.]/g,''))||0;totals[e.category]=(totals[e.category]||0)+amt;});
   const entries=Object.entries(totals).sort((a,b)=>b[1]-a[1]);
   if(!entries.length){chart.innerHTML=`<div style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px"><div style="font-size:28px;margin-bottom:10px">📊</div>No data yet</div>`;return;}
   const max=entries[0][1];
@@ -1602,6 +1604,8 @@ async function loadExpenses() {
     data=await res.json();
   } catch(err){console.warn('[loadExpenses]',err.message);return;}
   if(!data||!data.length) return;
+  // Clear existing before reload to prevent duplicates
+  expenses = [];
   document.getElementById('expenses-empty')?.remove();
   document.getElementById('recent-empty')?.remove();
   const tbody=document.getElementById('expenses-tbody');
@@ -1651,22 +1655,51 @@ function showToast(msg,isErr){
 
 (async()=>{
   const client=sb();
+  const params=new URLSearchParams(window.location.search);
+  const isCheckoutSuccess=params.get('checkout')==='success';
+
   if(client){
     const {data}=await client.auth.getSession();
     currentUser=data?.session?.user||null;
     sessionToken=data?.session?.access_token||null;
-    if(currentUser){showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();}
-    client.auth.onAuthStateChange((_,session)=>{currentUser=session?.user||null;sessionToken=session?.access_token||null;});
-  }
-  const params=new URLSearchParams(window.location.search);
-  if(params.get('checkout')==='success'){
-    const subId=params.get('subscription_id')||params.get('token');
-    if(subId) localStorage.setItem('paypalSubscriptionId',subId);
-    setUserPlan('pro');
-    if(sessionToken){fetch(RAIL+'/api/activate-pro',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken}}).catch(()=>{});}
-    showToast('\uD83C\uDF89 Subscription activated — welcome to Pro!');
-    history.replaceState({},'','/');
-    showApp();
+
+    if(isCheckoutSuccess){
+      // Store subscription ID from PayPal return URL
+      const subId=params.get('subscription_id')||params.get('token');
+      if(subId) localStorage.setItem('paypalSubscriptionId',subId);
+      history.replaceState({},'','/');
+
+      if(!currentUser){
+        // Session not found — try refreshing once more before giving up
+        await new Promise(r=>setTimeout(r,800));
+        const {data:d2}=await client.auth.getSession();
+        currentUser=d2?.session?.user||null;
+        sessionToken=d2?.session?.access_token||null;
+      }
+
+      if(sessionToken){
+        const subId2=localStorage.getItem('paypalSubscriptionId');
+        // Activate pro in DB (and store subscriptionId for cancel support)
+        fetch(RAIL+'/api/activate-pro',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken},body:JSON.stringify({subscriptionId:subId2||''})}).catch(()=>{});
+      }
+      setUserPlan('pro');
+      showToast('\uD83C\uDF89 Subscription activated — welcome to Pro!');
+
+      if(currentUser){
+        showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();
+      } else {
+        // Rare: session truly gone — send them to login with a message
+        showPage('login');
+        showToast('Please sign in to access your Pro account.',true);
+      }
+    } else {
+      if(currentUser){showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();}
+    }
+
+    client.auth.onAuthStateChange((_,session)=>{
+      currentUser=session?.user||null;
+      sessionToken=session?.access_token||null;
+    });
   }
 })();
 

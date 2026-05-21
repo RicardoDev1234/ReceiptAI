@@ -242,9 +242,13 @@ app.post('/api/activate-pro', async (req, res) => {
     const user = await getAuthUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
+    const { subscriptionId } = req.body || {};
+    const updateData = { plan: 'pro' };
+    if (subscriptionId) updateData.subscription_id = subscriptionId;
+
     const { error } = await getSupabase()
       .from('users')
-      .update({ plan: 'pro' })
+      .update(updateData)
       .eq('id', user.id);
 
     if (error) throw error;
@@ -261,8 +265,19 @@ app.post('/api/cancel-subscription', async (req, res) => {
     const user = await getAuthUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { subscriptionId } = req.body;
-    if (!subscriptionId) return res.status(400).json({ error: 'subscriptionId is required' });
+    let { subscriptionId } = req.body;
+
+    // If not provided by client, look it up from DB
+    if (!subscriptionId) {
+      const { data: userData } = await getSupabase()
+        .from('users')
+        .select('subscription_id')
+        .eq('id', user.id)
+        .single();
+      subscriptionId = userData?.subscription_id;
+    }
+
+    if (!subscriptionId) return res.status(400).json({ error: 'No active subscription found.' });
 
     const { token, base } = await getPayPalAccessToken();
 
