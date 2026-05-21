@@ -1292,6 +1292,11 @@ async function startCheckout() {
     return;
   }
   showLoading('Redirecting to PayPal checkout\u2026');
+  // Hide loading if user hits back from PayPal
+  window.addEventListener('pageshow', () => hideLoading(), { once: true });
+  document.addEventListener('visibilitychange', function _vis() {
+    if (document.visibilityState === 'visible') { hideLoading(); document.removeEventListener('visibilitychange', _vis); }
+  });
   try {
     const res = await fetch(`${RAIL}/api/create-checkout-session`, {
       method: 'POST',
