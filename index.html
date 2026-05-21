@@ -1269,22 +1269,21 @@ function applyBillingState() {
 function toggleBilling()     { isYearly = !isYearly; applyBillingState(); }
 function toggleBillingPage() { isYearly = !isYearly; applyBillingState(); }
 async function startCheckoutFromBilling() {
-  if (!currentUser) {
-    const client = sb();
-    if (client) {
-      const { data } = await client.auth.getSession();
-      currentUser = data?.session?.user || null;
-      sessionToken = data?.session?.access_token || null;
-    }
+  // Always re-fetch session fresh
+  const client = sb();
+  if (client) {
+    const { data } = await client.auth.getSession();
+    currentUser = data?.session?.user || null;
+    sessionToken = data?.session?.access_token || null;
   }
   await startCheckout();
 }
 
 async function startCheckout() {
-  if (!currentUser) {
+  if (!currentUser || !sessionToken) {
     localStorage.setItem('pendingPlan', isYearly ? 'yearly' : 'monthly');
-    showPage('signup');
-    showToast('Create an account to start your free trial.');
+    showPage('login');
+    showToast('Please sign in to continue to checkout.');
     return;
   }
   showLoading('Redirecting to PayPal checkout\u2026');
