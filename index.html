@@ -817,7 +817,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
           <li><span class="chk gold">✦</span>Excel &amp; CSV export</li>
           <li><span class="chk gold">✦</span>Priority support &amp; all future features</li>
         </ul>
-        <button class="plan-btn gold-btn" onclick="startCheckout()">Start 7-Day Free Trial →</button>
+        <button class="plan-btn gold-btn" onclick="startCheckout()">Start 7-Day Free Trial → (then $7.99/mo)</button>
       </div>
     </div>
     <p class="pricing-trust">No credit card required to start &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; <span>7-day free trial included on Pro</span></p>
@@ -1159,7 +1159,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
                 <li><span class="chk">✓</span>Priority support</li>
                 <li><span class="chk">✓</span>All future features included</li>
               </ul>
-              <button class="plan-btn gold-btn" onclick="startCheckoutFromBilling()">Upgrade to Pro →</button>
+              <button class="plan-btn gold-btn" onclick="startCheckoutFromBilling()">Start 7-Day Free Trial → (then $7.99/mo)</button>
             </div>
           </div>
         </div>
@@ -1182,11 +1182,16 @@ function applyTaxVisibility() {
   if (taxCard) taxCard.style.display = NO_TAX_COUNTRIES.includes(userCountry) ? 'none' : '';
 }
 
+const SUPABASE_URL     = (window.SUPABASE_URL     || 'https://dnoonrvuetsvbrxaapbr.supabase.co');
+const SUPABASE_ANON_KEY = (window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRub29ucnZ1ZXRzdmJyeGFhcGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxOTQ3MTQsImV4cCI6MjA5NDc3MDcxNH0.mzTIz12VnJwYkAhuYdYIQO02E3MNFnvk96uSR778oMY');
+
 let _sb = null;
 function sb() {
   if (_sb) return _sb;
-  if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase) {
-    _sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  if (window.supabase) {
+    _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: 'receiptai-auth' }
+    });
   }
   return _sb;
 }
@@ -1381,6 +1386,12 @@ async function submitLogin(e) {
     sessionToken = json.session?.access_token || null;
     const client = sb();
     if (client && json.session) await client.auth.setSession(json.session);
+    // Re-fetch session to ensure it is fully persisted
+    if (client) {
+      const { data: d2 } = await client.auth.getSession();
+      currentUser  = d2?.session?.user  || currentUser;
+      sessionToken = d2?.session?.access_token || sessionToken;
+    }
     hideLoading(); applyAdminVisibility();
     await loadUserProfile(); await loadExpenses();
     const pendingPlan = localStorage.getItem('pendingPlan');
@@ -1407,12 +1418,24 @@ async function submitSignup(e) {
   try {
     const res  = await fetch(`${RAIL}/api/signup`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password:pass, fullName:name, country}) });
     const json = await res.json();
-    if (!res.ok) throw new Error(json.error || 'Sign up failed.');
+    if (!res.ok) {
+      let msg = json.error || 'Sign up failed.';
+      if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('duplicate')) {
+        msg = 'An account with this email already exists. Please sign in instead.';
+      }
+      throw new Error(msg);
+    }
     currentUser  = json.user;
     sessionToken = json.session?.access_token || null;
     userCountry  = country;
     const client = sb();
     if (client && json.session) await client.auth.setSession(json.session);
+    // Re-fetch session to ensure it is fully persisted before checkout redirect
+    if (client) {
+      const { data: d2 } = await client.auth.getSession();
+      currentUser  = d2?.session?.user  || currentUser;
+      sessionToken = d2?.session?.access_token || sessionToken;
+    }
     hideLoading(); applyTaxVisibility();
     const pendingPlan = localStorage.getItem('pendingPlan');
     if (pendingPlan && currentUser) { localStorage.removeItem('pendingPlan'); isYearly = pendingPlan==='yearly'; await startCheckout(); return; }
