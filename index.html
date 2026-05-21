@@ -1718,14 +1718,13 @@ function showToast(msg,isErr){
       if(currentUser){showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();}
     }
 
-    client.auth.onAuthStateChange(async (_,session)=>{
+    client.auth.onAuthStateChange(async (event,session)=>{
       currentUser=session?.user||null;
       sessionToken=session?.access_token||null;
-      // Handle Google OAuth redirect return
-      if(session?.user && !isCheckoutSuccess){
-        const wasOnAuth = document.getElementById('page-login')?.classList.contains('active') ||
-                          document.getElementById('page-signup')?.classList.contains('active');
-        if(wasOnAuth || !document.getElementById('page-app')?.classList.contains('active')){
+      // Only act on actual new sign-ins (Google OAuth, etc), not session restores
+      if(event==='SIGNED_IN' && session?.user && !isCheckoutSuccess){
+        const onAppPage = document.getElementById('page-app')?.classList.contains('active');
+        if(!onAppPage){
           await loadUserProfile();
           await loadExpenses();
           showApp();
@@ -1733,6 +1732,13 @@ function showToast(msg,isErr){
           const pendingPlan = localStorage.getItem('pendingPlan');
           if(pendingPlan){localStorage.removeItem('pendingPlan');isYearly=pendingPlan==='yearly';await startCheckout();}
         }
+      }
+      // Always re-apply admin visibility when auth state changes
+      if(event==='SIGNED_IN' || event==='TOKEN_REFRESHED'){
+        applyAdminVisibility();
+      }
+      if(event==='SIGNED_OUT'){
+        currentUser=null; sessionToken=null;
       }
     });
   }
