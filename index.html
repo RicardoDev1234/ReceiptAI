@@ -2,6 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ReceiptAI">
+  <meta name="application-name" content="ReceiptAI">
+  <meta name="theme-color" content="#C9A84C">
+  <meta name="description" content="Scan receipts, track expenses and manage your finances with AI.">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ReceiptAI — Smart Expense Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet"/>
@@ -1840,5 +1851,25 @@ function mobileNav(section) {
   <div class="mobile-nav-item" id="mnav-billing" onclick="mobileNav('billing')"><span class="mni">✦</span>Plan</div>
   <div class="mobile-nav-item" id="mnav-reports" onclick="mobileNav('reports')"><span class="mni">📄</span>Reports</div>
 </div>
+  <script>
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(r => console.log('[SW] registered', r.scope))
+          .catch(e => console.warn('[SW] failed', e));
+      });
+    }
+    // Handle app shortcuts (?action=scan / ?action=expenses)
+    window.addEventListener('DOMContentLoaded', () => {
+      const action = new URLSearchParams(window.location.search).get('action');
+      if (action === 'scan' && currentUser) {
+        setTimeout(() => { const el = document.querySelector('[data-section="scan"]'); if(el) el.click(); }, 500);
+      }
+      if (action === 'expenses' && currentUser) {
+        setTimeout(() => { const el = document.querySelector('[data-section="expenses"]'); if(el) el.click(); }, 500);
+      }
+    });
+  </script>
 </body>
 </html>
