@@ -828,7 +828,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
           <li><span class="chk gold">✦</span>Excel &amp; CSV export</li>
           <li><span class="chk gold">✦</span>Priority support &amp; all future features</li>
         </ul>
-        <button class="plan-btn gold-btn" onclick="startCheckout()">Start 7-Day Free Trial → (then $7.99/mo)</button>
+        <button class="plan-btn gold-btn" onclick="landingCheckout()">Start 7-Day Free Trial → (then $7.99/mo)</button>
       </div>
     </div>
     <p class="pricing-trust">No credit card required to start &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; <span>7-day free trial included on Pro</span></p>
@@ -1327,6 +1327,17 @@ function applyBillingState() {
 
 function toggleBilling()     { isYearly = !isYearly; applyBillingState(); }
 function toggleBillingPage() { isYearly = !isYearly; applyBillingState(); }
+function landingCheckout() {
+  // Landing page checkout — ALWAYS require auth first, no exceptions
+  localStorage.setItem('pendingPlan', isYearly ? 'yearly' : 'monthly');
+  if (currentUser && sessionToken) {
+    startCheckout();
+  } else {
+    showPage('signup');
+    showToast('Create a free account to start your 7-day trial.');
+  }
+}
+
 async function startCheckoutFromBilling() {
   // Always re-fetch session fresh
   const client = sb();
@@ -1354,7 +1365,7 @@ async function startCheckout() {
   try {
     const res = await fetch(`${RAIL}/api/create-checkout-session`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
       body: JSON.stringify({ plan: isYearly ? 'yearly' : 'monthly', email: currentUser.email }),
     });
     const json = await res.json();

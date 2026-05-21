@@ -154,6 +154,10 @@ app.post('/api/login', async (req, res) => {
 /* ── POST /api/create-checkout-session — PayPal subscription ── */
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
+    // SECURITY: require valid session — no anonymous checkouts
+    const user = await getAuthUser(req);
+    if (!user) return res.status(401).json({ error: 'You must be signed in to start a subscription.' });
+
     const { plan, email } = req.body;
 
     const planId = plan === 'yearly'
