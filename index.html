@@ -1308,6 +1308,14 @@ async function startCheckout() {
 }
 
 async function openPortal() {
+  if (!sessionToken) {
+    const client = sb();
+    if (client) {
+      const { data } = await client.auth.getSession();
+      currentUser = data?.session?.user || null;
+      sessionToken = data?.session?.access_token || null;
+    }
+  }
   if (!sessionToken) { showToast('Please sign in to manage your subscription.', true); return; }
   const subscriptionId = localStorage.getItem('paypalSubscriptionId');
   if (!subscriptionId) { showToast('No active subscription found. Please contact support.', true); return; }
@@ -1655,6 +1663,7 @@ function showToast(msg,isErr){
     const subId=params.get('subscription_id')||params.get('token');
     if(subId) localStorage.setItem('paypalSubscriptionId',subId);
     setUserPlan('pro');
+    if(sessionToken){fetch(RAIL+'/api/activate-pro',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken}}).catch(()=>{});}
     showToast('\uD83C\uDF89 Subscription activated — welcome to Pro!');
     history.replaceState({},'','/');
     showApp();
