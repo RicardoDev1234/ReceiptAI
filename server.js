@@ -363,6 +363,10 @@ app.post('/api/expenses', async (req, res) => {
 /* ── GET /api/admin/stats ── */
 app.get('/api/admin/stats', async (req, res) => {
   try {
+    const user = await getAuthUser(req);
+    if (!user || user.email !== 'ricardohatoum4@gmail.com') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const supabase = getSupabase();
     const [
       { count: totalUsers },

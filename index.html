@@ -1494,7 +1494,8 @@ async function analyzeReceipt() {
     hideLoading();
     document.querySelectorAll('.app-section').forEach(s=>s.classList.remove('active'));
     document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
-    document.getElementById('section-result').classList.add('active');
+    const resultSection = document.getElementById('section-result');
+    if(resultSection) resultSection.classList.add('active');
   }
 }
 
