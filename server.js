@@ -124,6 +124,10 @@ app.post('/api/signup', async (req, res) => {
       if (dbErr) console.warn('[Supabase users insert]', dbErr.message);
     }
 
+    // Supabase silently succeeds but returns empty identities if email already registered
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      return res.status(400).json({ error: 'An account with this email already exists. Please sign in instead.' });
+    }
     res.json({ user: data.user, session: data.session });
   } catch (err) {
     console.error('[Signup]', err.message);
@@ -178,6 +182,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
           locale:              'en-US',
           shipping_preference: 'NO_SHIPPING',
           user_action:         'SUBSCRIBE_NOW',
+          payment_method:      { payer_selected: 'PAYPAL', payee_preferred: 'IMMEDIATE_PAYMENT_REQUIRED' },
+          landing_page:        'BILLING',
           return_url:          `${baseUrl}/?checkout=success`,
           cancel_url:          `${baseUrl}/`,
         },
