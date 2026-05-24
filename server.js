@@ -81,6 +81,44 @@ async function getAuthUser(req) {
   return user;
 }
 
+/* ── Subscription / auth middleware ── */
+async function isSubscriptionActive(userId) {
+  const { data } = await getSupabase()
+    .from('users').select('plan').eq('id', userId).single();
+  return data?.plan === 'pro';
+}
+
+async function requireAuth(req, res, next) {
+  try {
+    const user = await getAuthUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    req.authUser = user;
+    next();
+  } catch (err) { res.status(500).json({ error: err.message }); }
+}
+
+async function requireSubscription(req, res, next) {
+  try {
+    const user = await getAuthUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    if (!(await isSubscriptionActive(user.id)))
+      return res.status(402).json({ error: 'subscription_required', message: 'An active subscription is required.' });
+    req.authUser = user;
+    next();
+  } catch (err) { res.status(500).json({ error: err.message }); }
+}
+
+async function requireAdmin(req, res, next) {
+  try {
+    const user    = await getAuthUser(req);
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (!user || !adminEmail || user.email !== adminEmail)
+      return res.status(403).json({ error: 'Forbidden' });
+    req.authUser = user;
+    next();
+  } catch (err) { res.status(500).json({ error: err.message }); }
+}
+
 /* ── GET /health ── */
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
@@ -91,9 +129,10 @@ app.use(express.json({ limit: '20mb' }));
 app.get('/', (req, res) => {
   const html      = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   const injection = `<script>
-window.SUPABASE_URL           = ${JSON.stringify(process.env.SUPABASE_URL      || '')};
-window.SUPABASE_ANON_KEY      = ${JSON.stringify(process.env.SUPABASE_ANON_KEY || '')};
-window.PAYPAL_CLIENT_ID       = ${JSON.stringify(process.env.PAYPAL_CLIENT_ID  || '')};
+window.SUPABASE_URL            = ${JSON.stringify(process.env.SUPABASE_URL           || '')};
+window.SUPABASE_ANON_KEY       = ${JSON.stringify(process.env.SUPABASE_ANON_KEY      || '')};
+window.PAYPAL_CLIENT_ID        = ${JSON.stringify(process.env.PAYPAL_CLIENT_ID       || '')};
+window.PAYPAL_PLAN_ID_MONTHLY  = ${JSON.stringify(process.env.PAYPAL_PLAN_ID_MONTHLY || '')};
 </script>`;
   res.send(html.replace('</head>', injection + '\n</head>'));
 });
@@ -148,6 +187,23 @@ app.post('/api/login', async (req, res) => {
   } catch (err) {
     console.error('[Login]', err.message);
     res.status(401).json({ error: err.message });
+  }
+});
+
+/* ── GET /api/subscription-status ── */
+app.get('/api/subscription-status', requireAuth, async (req, res) => {
+  try {
+    const { data } = await getSupabase()
+      .from('users')
+      .select('plan, paypal_subscription_id')
+      .eq('id', req.authUser.id)
+      .single();
+    const plan   = data?.plan || 'free';
+    const active = plan === 'pro';
+    res.json({ active, plan, subscriptionId: data?.paypal_subscription_id || null });
+  } catch (err) {
+    console.error('[subscription-status]', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -222,9 +278,12 @@ app.post('/api/paypal-webhook', async (req, res) => {
     console.log('[PayPal Webhook] Event:', eventType);
 
     if (eventType === 'BILLING.SUBSCRIPTION.ACTIVATED') {
-      const email = event.resource?.subscriber?.email_address;
+      const email          = event.resource?.subscriber?.email_address;
+      const subscriptionId = event.resource?.id;
       if (email) {
-        const { error } = await getSupabase().from('users').update({ plan: 'pro' }).eq('email', email);
+        const update = { plan: 'pro' };
+        if (subscriptionId) update.paypal_subscription_id = subscriptionId;
+        const { error } = await getSupabase().from('users').update(update).eq('email', email);
         if (error) console.error('[Webhook] Failed to update plan:', error.message);
         else console.log('[Webhook] Plan → pro for:', email);
       }
@@ -247,19 +306,18 @@ app.post('/api/paypal-webhook', async (req, res) => {
 });
 
 /* ── POST /api/activate-pro — called after successful PayPal checkout ── */
-app.post('/api/activate-pro', async (req, res) => {
+app.post('/api/activate-pro', requireAuth, async (req, res) => {
   try {
-    const user = await getAuthUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    const { subscriptionId } = req.body;
+    const update = { plan: 'pro' };
+    if (subscriptionId) update.paypal_subscription_id = subscriptionId;
 
-    const { subscriptionId } = req.body || {};
-    const updateData = { plan: 'pro' };
-    if (subscriptionId) updateData.subscription_id = subscriptionId;
+    const { subscriptionId } = req.body;
 
     const { error } = await getSupabase()
       .from('users')
-      .update(updateData)
-      .eq('id', user.id);
+      .update(update)
+      .eq('id', req.authUser.id);
 
     if (error) throw error;
     res.json({ success: true });
@@ -270,23 +328,15 @@ app.post('/api/activate-pro', async (req, res) => {
 });
 
 /* ── POST /api/cancel-subscription — cancel user's PayPal subscription ── */
-app.post('/api/cancel-subscription', async (req, res) => {
+app.post('/api/cancel-subscription', requireAuth, async (req, res) => {
   try {
-    const user = await getAuthUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    const user = req.authUser;
 
     let { subscriptionId } = req.body;
-
-    // If not provided by client, look it up from DB
     if (!subscriptionId) {
-      const { data: userData } = await getSupabase()
-        .from('users')
-        .select('subscription_id')
-        .eq('id', user.id)
-        .single();
-      subscriptionId = userData?.subscription_id;
+      const { data } = await getSupabase().from('users').select('paypal_subscription_id').eq('id', user.id).single();
+      subscriptionId = data?.paypal_subscription_id;
     }
-
     if (!subscriptionId) return res.status(400).json({ error: 'No active subscription found.' });
 
     const { token, base } = await getPayPalAccessToken();
@@ -301,7 +351,7 @@ app.post('/api/cancel-subscription', async (req, res) => {
     });
 
     if (response.status === 204) {
-      await getSupabase().from('users').update({ plan: 'free' }).eq('id', user.id);
+      await getSupabase().from('users').update({ plan: 'free', paypal_subscription_id: null }).eq('id', user.id);
       return res.json({ success: true });
     }
 
@@ -314,10 +364,9 @@ app.post('/api/cancel-subscription', async (req, res) => {
 });
 
 /* ── GET /api/expenses ── */
-app.get('/api/expenses', async (req, res) => {
+app.get('/api/expenses', requireSubscription, async (req, res) => {
   try {
-    const user = await getAuthUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    const user = req.authUser;
 
     const { data, error } = await getSupabase()
       .from('expenses')
@@ -334,10 +383,9 @@ app.get('/api/expenses', async (req, res) => {
 });
 
 /* ── POST /api/expenses ── */
-app.post('/api/expenses', async (req, res) => {
+app.post('/api/expenses', requireSubscription, async (req, res) => {
   try {
-    const user = await getAuthUser(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    const user = req.authUser;
 
     const { vendor, date, amount, tax, category, payment, notes } = req.body;
 
@@ -365,7 +413,7 @@ app.post('/api/expenses', async (req, res) => {
 });
 
 /* ── GET /api/admin/stats ── */
-app.get('/api/admin/stats', async (req, res) => {
+app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
     const user = await getAuthUser(req);
     if (!user || user.email !== 'ricardohatoum4@gmail.com') {
@@ -401,6 +449,7 @@ app.get('/api/admin/stats', async (req, res) => {
 app.get('/api/setup-db', async (req, res) => {
   const sql = `
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS country TEXT DEFAULT '';
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS paypal_subscription_id TEXT DEFAULT NULL;
 CREATE TABLE IF NOT EXISTS public.expenses (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -443,7 +492,7 @@ CREATE POLICY "Users can delete own expenses" ON public.expenses FOR DELETE USIN
 });
 
 /* ── POST /api/analyze-receipt ── */
-app.post('/api/analyze-receipt', async (req, res) => {
+app.post('/api/analyze-receipt', requireSubscription, async (req, res) => {
   try {
     const { base64, mediaType } = req.body;
     if (!base64 || !mediaType) return res.status(400).json({ error: 'Missing base64 or mediaType.' });

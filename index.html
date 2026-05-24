@@ -652,6 +652,29 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 
 .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(8,8,8,0.82); z-index: 900; align-items: center; justify-content: center; flex-direction: column; gap: 18px; }
 .loading-overlay.show { display: flex; }
+
+.trial-modal-wrap { display: none; position: fixed; inset: 0; z-index: 700; background: rgba(8,8,8,0.94); backdrop-filter: blur(14px); align-items: center; justify-content: center; padding: 24px; }
+.trial-modal-wrap.show { display: flex; }
+.trial-modal-box {
+  background: var(--black2); border: 1.5px solid var(--gold); border-radius: 26px;
+  padding: 52px 48px; max-width: 460px; width: 100%; text-align: center;
+  box-shadow: 0 0 0 1px var(--gold3), 0 0 80px #C9A84C18, 0 40px 80px #00000070;
+}
+.trial-modal-icon { font-size: 52px; line-height: 1; margin-bottom: 18px; }
+.trial-modal-title {
+  font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.trial-modal-sub { font-size: 14.5px; color: var(--white2); line-height: 1.65; margin-bottom: 28px; font-weight: 300; }
+.trial-features { list-style: none; margin-bottom: 28px; text-align: left; display: inline-block; width: 100%; }
+.trial-features li { font-size: 13.5px; color: var(--white2); padding: 7px 0; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border2); }
+.trial-features li:last-child { border-bottom: none; }
+.trial-features li .chk { color: var(--green); font-weight: 700; flex-shrink: 0; }
+.trial-trust { font-size: 11.5px; color: var(--white3); margin: 14px 0 18px; line-height: 1.7; }
+.trial-signout { background: none; border: none; color: var(--white3); font-size: 12px; cursor: pointer; font-family: inherit; opacity: 0.7; transition: opacity 0.2s; }
+.trial-signout:hover { opacity: 1; }
 .spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.75s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-txt { font-size: 14px; color: var(--white2); font-weight: 300; }
@@ -751,6 +774,25 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- TRIAL MODAL -->
+<div class="trial-modal-wrap" id="trial-modal">
+  <div class="trial-modal-box">
+    <div class="trial-modal-icon">✦</div>
+    <div class="trial-modal-title">Start Your Free Trial</div>
+    <div class="trial-modal-sub">7 days completely free — then $7.99/month.<br>Enter payment details now, no charge for 7 days.</div>
+    <ul class="trial-features">
+      <li><span class="chk">✓</span>Unlimited AI receipt scanning</li>
+      <li><span class="chk">✓</span>Smart dashboard &amp; analytics</li>
+      <li><span class="chk">✓</span>Tax-ready reports &amp; CSV/Excel export</li>
+      <li><span class="chk">✓</span>Apple Pay, cards &amp; all PayPal methods</li>
+      <li><span class="chk">✓</span>Cancel anytime before 7 days — pay nothing</li>
+    </ul>
+    <div id="paypal-button-container" style="min-height:55px;margin-bottom:4px"></div>
+    <div class="trial-trust">Secured by PayPal &nbsp;·&nbsp; No charge for 7 days &nbsp;·&nbsp; Cancel anytime</div>
+    <button class="trial-signout" onclick="handleSignOut()">Sign out instead</button>
+  </div>
+</div>
 
 <!-- LANDING -->
 <div class="page active" id="page-landing">
@@ -1370,7 +1412,6 @@ async function startCheckout() {
     });
     const json = await res.json();
     if (json.url) {
-      if (json.subscriptionId) localStorage.setItem('paypalSubscriptionId', json.subscriptionId);
       window.location.href = json.url;
     } else {
       throw new Error(json.error || 'Could not start checkout.');
@@ -1391,10 +1432,21 @@ async function openPortal() {
     }
   }
   if (!sessionToken) { showToast('Please sign in to manage your subscription.', true); return; }
+
+
+  showLoading('Loading subscription\u2026');
+  let subscriptionId;
+  try {
+    const sr   = await fetch(`${RAIL}/api/subscription-status`, { headers: { 'Authorization': `Bearer ${sessionToken}` } });
+    const sd   = await sr.json();
+    subscriptionId = sd.subscriptionId;
+  } catch (e) { hideLoading(); showToast('Could not load subscription details.', true); return; }
+  hideLoading();
+
+  if (!subscriptionId) { showToast('No active subscription found. Please contact support.', true); return; }
   const confirmed = confirm('Are you sure you want to cancel your Pro subscription? You will keep access until the end of your billing period.');
   if (!confirmed) return;
   showLoading('Cancelling subscription\u2026');
-  const subscriptionId = localStorage.getItem('paypalSubscriptionId') || '';
   try {
     const res = await fetch(`${RAIL}/api/cancel-subscription`, {
       method: 'POST',
@@ -1403,7 +1455,6 @@ async function openPortal() {
     });
     const json = await res.json();
     if (json.success) {
-      localStorage.removeItem('paypalSubscriptionId');
       setUserPlan('free');
       hideLoading();
       showToast('Subscription cancelled. You keep Pro access until end of billing period.');
@@ -1464,9 +1515,8 @@ async function submitLogin(e) {
     }
     hideLoading(); applyAdminVisibility();
     await loadUserProfile(); await loadExpenses();
-    const pendingPlan = localStorage.getItem('pendingPlan');
-    if (pendingPlan && currentUser) { localStorage.removeItem('pendingPlan'); isYearly = pendingPlan==='yearly'; await startCheckout(); return; }
     showApp();
+    await checkAndShowTrialModal();
   } catch (err) { hideLoading(); showToast(err.message||'Sign in failed.', true); }
 }
 
@@ -1507,9 +1557,8 @@ async function submitSignup(e) {
       sessionToken = d2?.session?.access_token || sessionToken;
     }
     hideLoading(); applyTaxVisibility();
-    const pendingPlan = localStorage.getItem('pendingPlan');
-    if (pendingPlan && currentUser) { localStorage.removeItem('pendingPlan'); isYearly = pendingPlan==='yearly'; await startCheckout(); return; }
     showApp(); applyAdminVisibility();
+    await checkAndShowTrialModal();
   } catch (err) { hideLoading(); showToast(err.message||'Sign up failed.', true); }
 }
 
@@ -1548,7 +1597,8 @@ async function analyzeReceipt() {
   try {
     const base64=uploadedImage.split(',')[1];
     const mediaType=uploadedImage.split(';')[0].split(':')[1];
-    const res=await fetch(`${RAIL}/api/analyze-receipt`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({base64,mediaType})});
+    const res=await fetch(`${RAIL}/api/analyze-receipt`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${sessionToken}`},body:JSON.stringify({base64,mediaType})});
+    if(res.status===401||res.status===402){hideLoading();showTrialModal();return;}
     if(!res.ok) throw new Error('Server error '+res.status);
     const result=await res.json();
     if(result.error) throw new Error(result.error);
@@ -1693,6 +1743,7 @@ async function loadExpenses() {
   let data;
   try {
     const res=await fetch(`${RAIL}/api/expenses`,{headers:{'Authorization':`Bearer ${sessionToken}`}});
+    if(res.status===401||res.status===402){showTrialModal();return;}
     if(!res.ok){console.warn('[loadExpenses] HTTP',res.status);return;}
     data=await res.json();
   } catch(err){console.warn('[loadExpenses]',err.message);return;}
@@ -1775,13 +1826,10 @@ function showToast(msg,isErr){
     sessionToken=data?.session?.access_token||null;
 
     if(isCheckoutSuccess){
-      // Store subscription ID from PayPal return URL
       const subId=params.get('subscription_id')||params.get('token');
-      if(subId) localStorage.setItem('paypalSubscriptionId',subId);
       history.replaceState({},'','/');
 
       if(!currentUser){
-        // Session not found — try refreshing once more before giving up
         await new Promise(r=>setTimeout(r,800));
         const {data:d2}=await client.auth.getSession();
         currentUser=d2?.session?.user||null;
@@ -1789,28 +1837,24 @@ function showToast(msg,isErr){
       }
 
       if(sessionToken){
-        const subId2=localStorage.getItem('paypalSubscriptionId');
-        // Activate pro in DB (and store subscriptionId for cancel support)
-        fetch(RAIL+'/api/activate-pro',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken},body:JSON.stringify({subscriptionId:subId2||''})}).catch(()=>{});
+        fetch(RAIL+'/api/activate-pro',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken},body:JSON.stringify({subscriptionId:subId||undefined})}).catch(()=>{});
       }
       setUserPlan('pro');
-      showToast('\uD83C\uDF89 Subscription activated — welcome to Pro!');
+      showToast('🎉 Subscription activated — welcome to Pro!');
 
       if(currentUser){
         showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();
       } else {
-        // Rare: session truly gone — send them to login with a message
         showPage('login');
         showToast('Please sign in to access your Pro account.',true);
       }
     } else {
-      if(currentUser){showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();}
+      if(currentUser){showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();await checkAndShowTrialModal();}
     }
 
     client.auth.onAuthStateChange(async (event,session)=>{
       currentUser=session?.user||null;
       sessionToken=session?.access_token||null;
-      // Only act on actual new sign-ins (Google OAuth, etc), not session restores
       if(event==='SIGNED_IN' && session?.user && !isCheckoutSuccess){
         const onAppPage = document.getElementById('page-app')?.classList.contains('active');
         if(!onAppPage){
@@ -1818,11 +1862,9 @@ function showToast(msg,isErr){
           await loadExpenses();
           showApp();
           applyAdminVisibility();
-          const pendingPlan = localStorage.getItem('pendingPlan');
-          if(pendingPlan){localStorage.removeItem('pendingPlan');isYearly=pendingPlan==='yearly';await startCheckout();}
+          await checkAndShowTrialModal();
         }
       }
-      // Always re-apply admin visibility when auth state changes
       if(event==='SIGNED_IN' || event==='TOKEN_REFRESHED'){
         applyAdminVisibility();
       }
@@ -1852,6 +1894,101 @@ function mobileNav(section) {
   if (el) el.classList.add("active");
   showSection(document.querySelector("[data-section=" + section + "]"), section);
   if (section === "admin") loadAdminStats();
+}
+
+/* ── Google OAuth ── */
+async function signInWithGoogle() {
+  const client = sb();
+  if (!client) { showToast('Auth not configured.', true); return; }
+  const { error } = await client.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/' },
+  });
+  if (error) showToast(error.message, true);
+}
+
+/* ── Trial modal ── */
+function showTrialModal() {
+  document.getElementById('trial-modal').classList.add('show');
+  renderPayPalButton();
+}
+function hideTrialModal() {
+  document.getElementById('trial-modal').classList.remove('show');
+}
+
+async function checkAndShowTrialModal() {
+  if (!sessionToken) return;
+  try {
+    const res = await fetch(`${RAIL}/api/subscription-status`, {
+      headers: { 'Authorization': `Bearer ${sessionToken}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.active) {
+      setUserPlan('pro');
+    } else {
+      showTrialModal();
+    }
+  } catch (err) {
+    console.warn('[checkAndShowTrialModal]', err.message);
+  }
+}
+
+/* ── PayPal JS SDK ── */
+function loadPayPalSDK() {
+  return new Promise((resolve, reject) => {
+    if (window.paypal) { resolve(); return; }
+    if (!window.PAYPAL_CLIENT_ID) { reject(new Error('PayPal client ID not configured')); return; }
+    const s = document.createElement('script');
+    s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(window.PAYPAL_CLIENT_ID)}&vault=true&intent=subscription&enable-funding=applepay,venmo,card&components=buttons`;
+    s.onload  = resolve;
+    s.onerror = () => reject(new Error('Failed to load PayPal SDK'));
+    document.head.appendChild(s);
+  });
+}
+
+async function renderPayPalButton() {
+  const container = document.getElementById('paypal-button-container');
+  container.innerHTML = '<div style="color:var(--white3);font-size:13px;padding:12px 0">Loading PayPal…</div>';
+  try {
+    await loadPayPalSDK();
+    container.innerHTML = '';
+    window.paypal.Buttons({
+      style: { shape: 'rect', color: 'gold', layout: 'vertical', label: 'subscribe', height: 50 },
+      createSubscription(_data, actions) {
+        return actions.subscription.create({ plan_id: window.PAYPAL_PLAN_ID_MONTHLY });
+      },
+      async onApprove(data) {
+        showLoading('Activating your trial…');
+        await activateSubscription(data.subscriptionID);
+      },
+      onError(err) {
+        console.error('[PayPal]', err);
+        showToast('PayPal error — please try again.', true);
+      },
+    }).render('#paypal-button-container');
+  } catch (err) {
+    container.innerHTML = `<div style="color:#e07070;font-size:13px;padding:8px 0">${esc(err.message)}</div>`;
+  }
+}
+
+async function activateSubscription(subscriptionId) {
+  try {
+    const res = await fetch(`${RAIL}/api/activate-pro`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+      body: JSON.stringify({ subscriptionId }),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || 'Activation failed.');
+    setUserPlan('pro');
+    hideTrialModal();
+    hideLoading();
+    showToast('🎉 Trial started — welcome to ReceiptAI Pro!');
+  } catch (err) {
+    hideLoading();
+    showToast(err.message, true);
+  }
 }
 </script>
 
