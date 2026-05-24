@@ -1375,15 +1375,22 @@ function toggleBilling()     { isYearly = !isYearly; applyBillingState(); }
 function toggleBillingPage() { isYearly = !isYearly; applyBillingState(); }
 function landingCheckout() {
   if (currentUser && sessionToken) {
-    showTrialModal();
+    startCheckout();
   } else {
     showPage('signup');
     showToast('Create a free account to start your 7-day trial.');
   }
 }
 
-function startCheckoutFromBilling() {
-  showTrialModal();
+async function startCheckoutFromBilling() {
+  // Re-fetch session fresh before redirecting
+  const client = sb();
+  if (client) {
+    const { data } = await client.auth.getSession();
+    currentUser = data?.session?.user || null;
+    sessionToken = data?.session?.access_token || null;
+  }
+  await startCheckout();
 }
 
 async function startCheckout() {
@@ -1739,7 +1746,7 @@ async function loadExpenses() {
   try {
     const res=await fetch(`${RAIL}/api/expenses`,{headers:{'Authorization':`Bearer ${sessionToken}`}});
     if(res.status===401){showPage('login');return;}
-    if(res.status===402){showTrialModal();return;}
+    if(res.status===402){return;} // checkAndShowTrialModal handles the modal on load
     if(!res.ok){console.warn('[loadExpenses] HTTP',res.status);return;}
     data=await res.json();
   } catch(err){console.warn('[loadExpenses]',err.message);return;}
@@ -1911,6 +1918,8 @@ function hideTrialModal() {
 
 async function checkAndShowTrialModal() {
   if (!sessionToken) return;
+  // Don't interrupt the user if they're already looking at the billing/plan page
+  if (document.getElementById('section-billing')?.classList.contains('active')) return;
   try {
     const res = await fetch(`${RAIL}/api/subscription-status`, {
       headers: { 'Authorization': `Bearer ${sessionToken}` },
