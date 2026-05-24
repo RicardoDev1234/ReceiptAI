@@ -1816,6 +1816,16 @@ function showToast(msg,isErr){
 }
 
 (async()=>{
+  // Fetch public config from Railway so env vars are available when Vercel serves the static HTML
+  try {
+    const cfg = await fetch(`${RAIL}/api/config`).then(r => r.json());
+    if (cfg.paypalClientId)      window.PAYPAL_CLIENT_ID       = cfg.paypalClientId;
+    if (cfg.paypalPlanIdMonthly) window.PAYPAL_PLAN_ID_MONTHLY = cfg.paypalPlanIdMonthly;
+    if (cfg.supabaseUrl)         window.SUPABASE_URL            = cfg.supabaseUrl;
+    if (cfg.supabaseAnonKey)     window.SUPABASE_ANON_KEY       = cfg.supabaseAnonKey;
+    _sb = null; // reset cached client so sb() picks up the freshly set keys
+  } catch (e) { console.warn('[config]', e.message); }
+
   const client=sb();
   const params=new URLSearchParams(window.location.search);
   const isCheckoutSuccess=params.get('checkout')==='success';

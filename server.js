@@ -122,6 +122,16 @@ async function requireAdmin(req, res, next) {
 /* ── GET /health ── */
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
+/* ── GET /api/config — public client-side config ── */
+app.get('/api/config', (req, res) => {
+  res.json({
+    paypalClientId:       process.env.PAYPAL_CLIENT_ID       || '',
+    paypalPlanIdMonthly:  process.env.PAYPAL_PLAN_ID_MONTHLY || '',
+    supabaseUrl:          process.env.SUPABASE_URL            || '',
+    supabaseAnonKey:      process.env.SUPABASE_ANON_KEY       || '',
+  });
+});
+
 /* ── JSON body parser ── */
 app.use(express.json({ limit: '20mb' }));
 
