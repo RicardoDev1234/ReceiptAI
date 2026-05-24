@@ -1374,25 +1374,16 @@ function applyBillingState() {
 function toggleBilling()     { isYearly = !isYearly; applyBillingState(); }
 function toggleBillingPage() { isYearly = !isYearly; applyBillingState(); }
 function landingCheckout() {
-  // Landing page checkout — ALWAYS require auth first, no exceptions
-  localStorage.setItem('pendingPlan', isYearly ? 'yearly' : 'monthly');
   if (currentUser && sessionToken) {
-    startCheckout();
+    showTrialModal();
   } else {
     showPage('signup');
     showToast('Create a free account to start your 7-day trial.');
   }
 }
 
-async function startCheckoutFromBilling() {
-  // Always re-fetch session fresh
-  const client = sb();
-  if (client) {
-    const { data } = await client.auth.getSession();
-    currentUser = data?.session?.user || null;
-    sessionToken = data?.session?.access_token || null;
-  }
-  await startCheckout();
+function startCheckoutFromBilling() {
+  showTrialModal();
 }
 
 async function startCheckout() {
@@ -1701,7 +1692,7 @@ function exportCSV() {
   showToast('\u2713 CSV exported!');
 }
 
-function requirePro() { if(userPlan!=='pro') alert('\uD83D\uDD12 Pro feature — upgrade to unlock.\nGo to Billing to upgrade your plan.'); }
+function requirePro() { if(userPlan!=='pro') showTrialModal(); }
 
 function setUserPlan(plan) {
   userPlan=plan;
@@ -1747,7 +1738,8 @@ async function loadExpenses() {
   let data;
   try {
     const res=await fetch(`${RAIL}/api/expenses`,{headers:{'Authorization':`Bearer ${sessionToken}`}});
-    if(res.status===401||res.status===402){showTrialModal();return;}
+    if(res.status===401){showPage('login');return;}
+    if(res.status===402){showTrialModal();return;}
     if(!res.ok){console.warn('[loadExpenses] HTTP',res.status);return;}
     data=await res.json();
   } catch(err){console.warn('[loadExpenses]',err.message);return;}
@@ -1888,19 +1880,6 @@ function showToast(msg,isErr){
     });
   }
 })();
-
-async function signInWithGoogle() {
-  const client = sb();
-  if (!client) { showToast('Auth not ready, please refresh.', true); return; }
-  const { error } = await client.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'https://receipt-ai-coral.vercel.app/',
-      queryParams: { access_type: 'offline', prompt: 'consent' }
-    }
-  });
-  if (error) showToast(error.message, true);
-}
 
 function mobileNav(section) {
   document.querySelectorAll(".mobile-nav-item").forEach(i => i.classList.remove("active"));
