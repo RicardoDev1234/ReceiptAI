@@ -312,8 +312,6 @@ app.post('/api/activate-pro', requireAuth, async (req, res) => {
     const update = { plan: 'pro' };
     if (subscriptionId) update.paypal_subscription_id = subscriptionId;
 
-    const { subscriptionId } = req.body;
-
     const { error } = await getSupabase()
       .from('users')
       .update(update)
