@@ -1547,9 +1547,10 @@ async function submitLogin(e) {
       sessionToken = d2?.session?.access_token || sessionToken;
     }
     hideLoading(); applyAdminVisibility();
-    await loadUserProfile(); await loadExpenses();
+    try { await loadUserProfile(); } catch(e) {}
+    try { await loadExpenses(); } catch(e) {}
     showApp();
-  } catch (err) { hideLoading(); showToast(err.message||'Sign in failed.', true); }
+  } catch (err) { hideLoading(); showToast(err.message || 'Incorrect email or password. Please try again.', true); }
 }
 
 async function submitSignup(e) {
