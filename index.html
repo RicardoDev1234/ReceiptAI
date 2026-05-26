@@ -1037,7 +1037,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       </div>
       <div class="sidebar-section-label">Main</div>
       <div class="sidebar-item active" data-section="dashboard" onclick="showSection(this,'dashboard')"><span class="si-icon">📊</span> Dashboard</div>
-      <div class="sidebar-item" data-section="scan" onclick="showSection(this,'scan')"><span class="si-icon">📸</span> Scan Receipt</div>
+      <div class="sidebar-item" data-section="scan" onclick="if(userPlan!=='pro'){showTrialModal();return;} showSection(this,'scan')"><span class="si-icon">📸</span> Scan Receipt</div>
       <div class="sidebar-item" data-section="expenses" onclick="showSection(this,'expenses')"><span class="si-icon">🗂</span> All Expenses</div>
       <div class="sidebar-item" data-section="reports" onclick="showSection(this,'reports')"><span class="si-icon">📄</span> Reports</div>
       <div class="sidebar-section-label">Settings</div>
@@ -1068,12 +1068,12 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <!-- SCAN -->
       <div class="app-section" id="section-scan">
         <div class="page-hdr"><h2>Scan Receipt</h2><p>Upload or drag a receipt — AI extracts everything instantly</p></div>
-        <div class="scan-drop" id="scan-drop" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="handleDrop(event)">
+        <div class="scan-drop" id="scan-drop" onclick="if(userPlan!=='pro'){showTrialModal();return;} document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="if(userPlan!=='pro'){showTrialModal();return;} handleDrop(event)">
           <div class="sd-icon">📸</div>
           <h3>Drop your receipt here</h3>
           <p>Supports JPG, PNG — any receipt from any store worldwide</p>
           <div class="scan-btn-row">
-            <button class="btn-gold" style="border:none" onclick="event.stopPropagation();document.getElementById('file-input').click()">Upload Receipt</button>
+            <button class="btn-gold" style="border:none" onclick="event.stopPropagation();if(userPlan!=='pro'){showTrialModal();return;} document.getElementById('file-input').click()">Upload Receipt</button>
             <button class="btn-camera" onclick="event.stopPropagation();document.getElementById('camera-input').click()">📷 Take Photo</button>
           </div>
         </div>
@@ -1519,7 +1519,6 @@ async function submitLogin(e) {
     hideLoading(); applyAdminVisibility();
     await loadUserProfile(); await loadExpenses();
     showApp();
-    await checkAndShowTrialModal();
   } catch (err) { hideLoading(); showToast(err.message||'Sign in failed.', true); }
 }
 
@@ -1561,7 +1560,6 @@ async function submitSignup(e) {
     }
     hideLoading(); applyTaxVisibility();
     showApp(); applyAdminVisibility();
-    await checkAndShowTrialModal();
   } catch (err) { hideLoading(); showToast(err.message||'Sign up failed.', true); }
 }
 
@@ -1863,7 +1861,7 @@ function showToast(msg,isErr){
         showToast('Please sign in to access your Pro account.',true);
       }
     } else {
-      if(currentUser){showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();await checkAndShowTrialModal();}
+      if(currentUser){showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();}
     }
 
     client.auth.onAuthStateChange(async (event,session)=>{
@@ -1876,7 +1874,6 @@ function showToast(msg,isErr){
           await loadExpenses();
           showApp();
           applyAdminVisibility();
-          await checkAndShowTrialModal();
         }
       }
       if(event==='SIGNED_IN' || event==='TOKEN_REFRESHED'){
@@ -1997,7 +1994,7 @@ async function activateSubscription(subscriptionId) {
 
 <div class="mobile-nav" id="mobile-nav" style="display:none">
   <div class="mobile-nav-item active" id="mnav-dashboard" onclick="mobileNav('dashboard')"><span class="mni">📊</span>Home</div>
-  <div class="mobile-nav-item" id="mnav-scan" onclick="mobileNav('scan')"><span class="mni">📸</span>Scan</div>
+  <div class="mobile-nav-item" id="mnav-scan" onclick="if(userPlan!=='pro'){showTrialModal();return;} mobileNav('scan')"><span class="mni">📸</span>Scan</div>
   <div class="mobile-nav-item" id="mnav-expenses" onclick="mobileNav('expenses')"><span class="mni">🗂</span>Expenses</div>
   <div class="mobile-nav-item" id="mnav-billing" onclick="mobileNav('billing')"><span class="mni">✦</span>Plan</div>
   <div class="mobile-nav-item" id="mnav-reports" onclick="mobileNav('reports')"><span class="mni">📄</span>Reports</div>
