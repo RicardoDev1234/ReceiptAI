@@ -1764,10 +1764,12 @@ function exportExcel() {
 }
 
 async function loadUserProfile() {
-  const client=sb(); if(!client||!currentUser) return;
-  const {data}=await client.from('users').select('plan, country').eq('id',currentUser.id).single();
-  if(data?.plan==='pro') setUserPlan('pro');
-  if(data?.country){userCountry=data.country;applyTaxVisibility();}
+  try {
+    const client=sb(); if(!client||!currentUser) return;
+    const {data}=await client.from('users').select('plan, country').eq('id',currentUser.id).single();
+    if(data?.plan==='pro') setUserPlan('pro');
+    if(data?.country){userCountry=data.country;applyTaxVisibility();}
+  } catch(e) { console.warn('[loadUserProfile]', e.message); }
 }
 
 async function loadExpenses() {
