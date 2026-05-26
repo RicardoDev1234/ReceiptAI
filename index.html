@@ -763,6 +763,15 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 </style>
 </head>
 <body>
+<div id="pwa-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;border:1px solid #c9a84c;border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 24px rgba(0,0,0,0.5);max-width:340px;width:90%">
+  <span style="font-size:22px">📱</span>
+  <div style="flex:1">
+    <div style="color:#fff;font-size:13px;font-weight:600">Add to Home Screen</div>
+    <div style="color:#aaa;font-size:11px;margin-top:2px">Works on iPhone & Android like a real app</div>
+  </div>
+  <button onclick="installPWA()" style="background:#c9a84c;color:#000;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">Install</button>
+  <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:none;border:none;color:#666;font-size:18px;cursor:pointer;padding:0 4px">×</button>
+</div>
 
 <nav>
   <div class="nav-logo" onclick="showPage('landing')">Receipt<em>AI</em></div>
@@ -812,9 +821,9 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
     </div>
     <div class="stats-row">
       <div class="stat"><div class="stat-num">10s</div><div class="stat-label">Per receipt scanned</div></div>
-      <div class="stat"><div class="stat-num">99%</div><div class="stat-label">AI accuracy rate</div></div>
+      <div class="stat"><div class="stat-num">GPT-4o</div><div class="stat-label">AI engine powering scans</div></div>
       <div class="stat"><div class="stat-num">$0</div><div class="stat-label">To get started</div></div>
-      <div class="stat"><div class="stat-num">47k</div><div class="stat-label">Receipts processed</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Private & secure</div></div>
     </div>
   </section>
 
@@ -2018,6 +2027,32 @@ async function activateSubscription(subscriptionId) {
         setTimeout(() => { const el = document.querySelector('[data-section="expenses"]'); if(el) el.click(); }, 500);
       }
     });
-  </script>
+  
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('pwa-banner');
+  if (banner) banner.style.display = 'flex';
+});
+
+async function installPWA() {
+  if (!deferredPrompt) {
+    alert('To install on iPhone: tap the Share button then Add to Home Screen');
+    return;
+  }
+  deferredPrompt.prompt();
+  const result = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('pwa-banner').style.display = 'none';
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwa-banner').style.display = 'none';
+  deferredPrompt = null;
+});
+
+</script>
 </body>
 </html>
