@@ -1299,7 +1299,7 @@ function sb() {
 let currentUser = null;
 
 function showPage(page) {
-  if (page === 'landing' || page === 'login') { currentUser = null; sessionToken = null; }
+  if (page === 'landing' || page === 'login') { currentUser = null; sessionToken = null; const _sb = sb(); if (_sb) _sb.auth.signOut(); }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   window.scrollTo(0, 0);
