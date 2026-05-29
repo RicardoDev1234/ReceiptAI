@@ -28,10 +28,10 @@
   --gold3:  #A8872C;
   --gold-dim: #C9A84C1A;
   --gold-glow: #C9A84C33;
-  --green:  #2EAD22;
-  --green2: #26921C;
-  --green-dim: #2EAD221A;
-  --green-glow: #2EAD2233;
+  --green: #c9a84c;
+  --green2: #b8964a;
+  --green-dim: #c9a84c1A;
+  --green-glow: #c9a84c33;
   --white:  #F5F0E8;
   --white2: #B8B4AC;
   --white3: #7A776F;
@@ -113,7 +113,7 @@ nav {
 
 .hero-badge {
   display: inline-flex; align-items: center; gap: 7px;
-  background: var(--green-dim); border: 1px solid #2EAD2240;
+  background: var(--green-dim); border: 1px solid #c9a84c40;
   color: var(--green); border-radius: 100px;
   padding: 6px 16px; font-size: 11.5px; font-weight: 700;
   letter-spacing: 1px; margin-bottom: 32px; text-transform: uppercase;
@@ -275,7 +275,7 @@ nav {
   box-shadow: 0 4px 16px #C9A84C55;
 }
 .save-banner {
-  display: none; background: var(--green-dim); border: 1px solid #2EAD2250;
+  display: none; background: var(--green-dim); border: 1px solid #c9a84c50;
   border-radius: 10px; padding: 10px 16px; text-align: center;
   font-size: 13.5px; font-weight: 700; color: var(--green);
   margin-bottom: 20px; letter-spacing: 0.2px;
@@ -343,7 +343,7 @@ nav {
 .toggle-track.on .toggle-knob { left: 26px; }
 .save-badge {
   background: var(--green-dim); color: var(--green);
-  border: 1px solid #2EAD2240; border-radius: 100px;
+  border: 1px solid #c9a84c40; border-radius: 100px;
   font-size: 11px; font-weight: 700; padding: 3px 11px;
 }
 
@@ -609,7 +609,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 .ai-badge {
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--green-dim); color: var(--green);
-  border: 1px solid #2EAD2240; border-radius: 100px;
+  border: 1px solid #c9a84c40; border-radius: 100px;
   font-size: 11px; font-weight: 700; padding: 4px 13px;
   text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 18px;
 }
@@ -647,7 +647,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 .exp-table tr:hover td { background: var(--gold-dim); }
 
 .tag { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
-.tag.tl  { background: var(--green-dim); color: var(--green); border: 1px solid #2EAD2240; }
+.tag.tl  { background: var(--green-dim); color: var(--green); border: 1px solid #c9a84c40; }
 .tag.tg  { background: var(--gold-dim);  color: var(--gold);  border: 1px solid var(--border); }
 .tag.tgr { background: var(--black3);    color: var(--white2); border: 1px solid var(--border2); }
 
@@ -706,7 +706,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 
 .toast {
   position: fixed; bottom: 26px; right: 26px; z-index: 1000;
-  background: var(--black2); border: 1px solid #2EAD2240;
+  background: var(--black2); border: 1px solid #c9a84c40;
   color: var(--green); padding: 13px 22px; border-radius: 11px;
   font-size: 13.5px; font-weight: 500;
   transform: translateY(90px); opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
@@ -1262,7 +1262,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
             </div>
           </div>
           <div class="billing-plans">
-            <div class="pricing-card" style="background:linear-gradient(160deg,#0a1a0a 0%,#0f1f0f 100%);border:1.5px solid var(--green);box-shadow:0 0 0 1px #2EAD2240,0 0 40px #2EAD2218,0 24px 60px #2EAD2210">
+            <div class="pricing-card" style="background:linear-gradient(160deg,#0a1a0a 0%,#0f1f0f 100%);border:1.5px solid var(--green);box-shadow:0 0 0 1px #c9a84c40,0 0 40px #2EAD2218,0 24px 60px #2EAD2210">
               <div class="plan-name" style="color:var(--green)">Free Trial</div>
               <div class="plan-price" style="color:var(--green)"><sup style="font-size:24px">$</sup>0<sub style="font-size:16px;color:var(--white2)">/mo</sub></div>
               <div class="plan-note">7 days free — then $7.99/mo</div>
@@ -1827,7 +1827,7 @@ async function loadAdminStats() {
         const date=u.created_at?new Date(u.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
         const planTag=u.plan==='pro'
           ?`<span style="background:#C9A84C22;color:var(--gold);border:1px solid var(--gold3);border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600">✦ Pro</span>`
-          :`<span style="background:#2EAD2215;color:var(--green);border:1px solid #2EAD2240;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600">Free</span>`;
+          :`<span style="background:#2EAD2215;color:var(--green);border:1px solid #c9a84c40;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600">Free</span>`;
         return `<tr>
           <td style="color:var(--white);font-weight:500">${esc(u.full_name||'Unknown')}</td>
           <td style="color:var(--white2);font-size:13px">${esc(u.email||'')}</td>
