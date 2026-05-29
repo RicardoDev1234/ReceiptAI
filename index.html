@@ -1766,7 +1766,9 @@ function exportExcel() {
 async function loadUserProfile() {
   try {
     const client=sb(); if(!client||!currentUser) return;
-    const {data}=await client.from('users').select('plan, country').eq('id',currentUser.id).single();
+    const timeout = new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000));
+    const query = client.from('users').select('plan, country').eq('id',currentUser.id).single();
+    const {data} = await Promise.race([query, timeout]);
     if(data?.plan==='pro') setUserPlan('pro');
     if(data?.country){userCountry=data.country;applyTaxVisibility();}
   } catch(e) { console.warn('[loadUserProfile]', e.message); }
