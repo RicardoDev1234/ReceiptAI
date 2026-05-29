@@ -1,0 +1,18 @@
+<svg width="100%" viewBox="0 0 200 80" role="img" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(8, 4)">
+  <rect x="8" y="6" width="32" height="42" rx="4" fill="none" stroke="#3a3f5c" stroke-width="2"/>
+  <path d="M8 44 Q8 52 16 52 L36 52 Q44 52 40 44" fill="#c9a84c" stroke="none"/>
+  <line x1="13" y1="14" x2="34" y2="14" stroke="#3a3f5c" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="13" y1="21" x2="34" y2="21" stroke="#3a3f5c" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="13" y1="28" x2="28" y2="28" stroke="#3a3f5c" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="13" y1="35" x2="26" y2="35" stroke="#3a3f5c" stroke-width="1" stroke-linecap="round" stroke-dasharray="2,2"/>
+  <path d="M30 8 L30 36 L38 36 Q46 36 46 28 Q46 22 40 21 L46 8 Z" fill="none" stroke="#c9a84c" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="38" y1="36" x2="48" y2="48" stroke="#c9a84c" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="52" cy="28" r="2" fill="#c9a84c"/>
+  <circle cx="56" cy="36" r="1.5" fill="#c9a84c" opacity="0.7"/>
+  <line x1="52" y1="28" x2="56" y2="36" stroke="#c9a84c" stroke-width="1" stroke-linecap="round"/>
+  <path d="M43 14 L50 7" stroke="#c9a84c" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M46 7 L50 7 L50 11" stroke="#c9a84c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</g>
+<text x="72" y="38" font-family="'Playfair Display', Georgia, serif" font-size="22" font-weight="700" fill="#f5f0e8" letter-spacing="0.5">Receipt<tspan fill="#c9a84c">AI</tspan></text>
+</svg>
