@@ -112,7 +112,7 @@ nav {
   pointer-events: none;
 }
 
-.hero-badge {
+.hero-badge { display: none !important; } .hero-badge-hidden {
   display: inline-flex; align-items: center; gap: 7px;
   background: var(--green-dim); border: 1px solid #c9a84c40;
   color: var(--green); border-radius: 100px;
@@ -240,10 +240,15 @@ nav {
 }
 .feature-card:hover::after { opacity: 1; }
 .feature-icon {
-  width: 48px; height: 48px; border-radius: 13px;
+  width: 52px; height: 52px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; margin-bottom: 18px;
-  background: var(--gold-dim); border: 1px solid var(--border);
+  font-size: 24px; margin-bottom: 20px;
+  background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25);
+  color: #c9a84c;
+  transition: background 0.2s, border-color 0.2s;
+}
+.feature-card:hover .feature-icon {
+  background: rgba(201,168,76,0.15); border-color: rgba(201,168,76,0.5);
 }
 .feature-title { font-size: 15.5px; font-weight: 600; margin-bottom: 9px; color: var(--white); }
 .feature-desc { font-size: 13.5px; color: var(--white2); line-height: 1.65; font-weight: 300; }
@@ -857,12 +862,12 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
       <div class="section-title">Everything your accountant<br>wishes you <span class="gold">already had</span></div>
       <div class="section-sub">Built for anyone who wants to effortlessly track their expenses, scan receipts, and stay on top of their finances — all in one place.</div>
       <div class="features-grid">
-        <div class="feature-card"><div class="feature-icon">📸</div><div class="feature-title">Instant AI Scanning</div><div class="feature-desc">Snap or upload any receipt. Our AI extracts vendor, date, amount, tax, and category in seconds — no manual entry ever.</div></div>
-        <div class="feature-card"><div class="feature-icon">📊</div><div class="feature-title">Smart Dashboard</div><div class="feature-desc">See exactly where your money goes with real-time category breakdowns, monthly trends, and spending insights.</div></div>
-        <div class="feature-card"><div class="feature-icon">📄</div><div class="feature-title">Tax-Ready Reports</div><div class="feature-desc">Export clean, organized reports by category — hand them straight to your accountant at year end.</div></div>
-        <div class="feature-card"><div class="feature-icon">🌍</div><div class="feature-title">Multi-Currency</div><div class="feature-desc">Works with any currency. Perfect for businesses that travel or deal with international suppliers.</div></div>
-        <div class="feature-card"><div class="feature-icon">👥</div><div class="feature-title">Team Expenses</div><div class="feature-desc">Let your team submit expenses that flow into one central dashboard for easy review and approval.</div></div>
-        <div class="feature-card"><div class="feature-icon">🔒</div><div class="feature-title">Secure & Private</div><div class="feature-desc">Your data is encrypted and never shared. You own your receipts and can export or delete at any time.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-scan"></i></div><div class="feature-title">Instant AI Scanning</div><div class="feature-desc">Snap or upload any receipt. Our AI extracts vendor, date, amount, tax, and category in seconds — no manual entry ever.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-layout-dashboard"></i></div><div class="feature-title">Smart Dashboard</div><div class="feature-desc">See exactly where your money goes with real-time category breakdowns, monthly trends, and spending insights.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-file-invoice"></i></div><div class="feature-title">Tax-Ready Reports</div><div class="feature-desc">Export clean, organized reports by category — hand them straight to your accountant at year end.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-world"></i></div><div class="feature-title">Multi-Currency</div><div class="feature-desc">Works with any currency. Perfect for businesses that travel or deal with international suppliers.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-users"></i></div><div class="feature-title">Team Expenses</div><div class="feature-desc">Let your team submit expenses that flow into one central dashboard for easy review and approval.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-shield-lock"></i></div><div class="feature-title">Secure & Private</div><div class="feature-desc">Your data is encrypted and never shared. You own your receipts and can export or delete at any time.</div></div>
       </div>
     </div>
   </div>
