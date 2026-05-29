@@ -15,7 +15,8 @@
   <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ReceiptAI — Smart Expense Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -962,7 +963,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 <div class="page" id="page-login">
   <div class="auth-wrap">
     <div class="auth-box">
-      <div class="auth-icon">🔐</div>
+      <div class="auth-icon"><i class="ti ti-lock" style="font-size:28px;color:#c9a84c"></i></div>
       <div class="auth-title">Welcome back</div>
       <div class="auth-sub">Sign in to your ReceiptAI account to continue.</div>
       <form id="login-form" onsubmit="submitLogin(event)" novalidate>
@@ -997,7 +998,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 <div class="page" id="page-signup">
   <div class="auth-wrap">
     <div class="auth-box">
-      <div class="auth-icon">✨</div>
+      <div class="auth-icon"><i class="ti ti-sparkles" style="font-size:28px;color:#c9a84c"></i></div>
       <div class="auth-title">Create account</div>
       <div class="auth-sub">7 days free — no credit card required. Cancel anytime.</div>
       <form id="signup-form" onsubmit="submitSignup(event)" novalidate>
@@ -1066,16 +1067,16 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
         <div class="sidebar-brand-tag">Smart Expense Tracker</div>
       </div>
       <div class="sidebar-section-label">Main</div>
-      <div class="sidebar-item active" data-section="dashboard" onclick="showSection(this,'dashboard')"><span class="si-icon">📊</span> Dashboard</div>
-      <div class="sidebar-item" data-section="scan" onclick="showSection(this,'scan')"><span class="si-icon">📸</span> Scan Receipt</div>
-      <div class="sidebar-item" data-section="expenses" onclick="showSection(this,'expenses')"><span class="si-icon">🗂</span> All Expenses</div>
-      <div class="sidebar-item" data-section="reports" onclick="showSection(this,'reports')"><span class="si-icon">📄</span> Reports</div>
+      <div class="sidebar-item active" data-section="dashboard" onclick="showSection(this,'dashboard')"><span class="si-icon"><i class="ti ti-layout-dashboard"></i></span> Dashboard</div>
+      <div class="sidebar-item" data-section="scan" onclick="showSection(this,'scan')"><span class="si-icon"><i class="ti ti-camera"></i></span> Scan Receipt</div>
+      <div class="sidebar-item" data-section="expenses" onclick="showSection(this,'expenses')"><span class="si-icon"><i class="ti ti-files"></i></span> All Expenses</div>
+      <div class="sidebar-item" data-section="reports" onclick="showSection(this,'reports')"><span class="si-icon"><i class="ti ti-chart-bar"></i></span> Reports</div>
       <div class="sidebar-section-label">Settings</div>
-      <div class="sidebar-item" data-section="billing" onclick="showSection(this,'billing')"><span class="si-icon">✦</span> My Plan</div>
-      <div class="sidebar-item" id="sidebar-admin-item" data-section="admin" onclick="showSection(this,'admin');loadAdminStats()" style="display:none"><span class="si-icon">⚙️</span> Admin</div>
+      <div class="sidebar-item" data-section="billing" onclick="showSection(this,'billing')"><span class="si-icon"><i class="ti ti-crown"></i></span> My Plan</div>
+      <div class="sidebar-item" id="sidebar-admin-item" data-section="admin" onclick="showSection(this,'admin');loadAdminStats()" style="display:none"><span class="si-icon"><i class="ti ti-settings"></i></span> Admin</div>
       <div class="sidebar-spacer"></div>
       <div class="sidebar-bottom">
-        <div class="sidebar-item" onclick="handleSignOut()"><span class="si-icon">🚪</span> Sign Out</div>
+        <div class="sidebar-item" onclick="handleSignOut()"><span class="si-icon"><i class="ti ti-logout"></i></span> Sign Out</div>
       </div>
     </aside>
 
@@ -1111,7 +1112,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
         <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleFile(this)"/>
         <div id="preview-area" style="display:none">
           <img id="preview-img" class="preview-img" src="" alt="Receipt preview"/>
-          <button class="btn-gold" onclick="if(userPlan!=='pro'){showTrialModal();return;} analyzeReceipt()" style="width:100%;padding:14px;font-size:15px;border:none;border-radius:11px;cursor:pointer;justify-content:center">✨ Analyze with AI</button>
+          <button class="btn-gold" onclick="if(userPlan!=='pro'){showTrialModal();return;} analyzeReceipt()" style="width:100%;padding:14px;font-size:15px;border:none;border-radius:11px;cursor:pointer;justify-content:center"><i class="ti ti-wand" style="margin-right:6px"></i> Analyze with AI</button>
         </div>
       </div>
 
@@ -1336,7 +1337,7 @@ function showPage(page) {
   const nav = document.getElementById('nav-links');
   if (page === 'app') {
     const isAdmin = currentUser?.email === ADMIN_EMAIL;
-    nav.innerHTML = isAdmin ? `<button class="nav-btn ghost" onclick="showSection(document.querySelector('[data-section=admin]'),'admin');loadAdminStats()">⚙ Admin</button>` : '';
+    nav.innerHTML = isAdmin ? `<button class="nav-btn ghost" onclick="showSection(document.querySelector('[data-section=admin]'),'admin');loadAdminStats()"> Admin</button>` : '';
   } else {
     nav.innerHTML = `<button class="nav-btn ghost" onclick="showPage('login')">Sign In</button><button class="nav-btn primary" onclick="showPage('signup')">Get Started</button>`;
   }
