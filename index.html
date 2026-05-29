@@ -67,12 +67,12 @@ nav {
 }
 .nav-logo {
   font-family: 'Playfair Display', serif;
-  font-size: 22px; font-weight: 900; letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  font-size: 24px; font-weight: 900; letter-spacing: 0.5px;
+  color: #f5f0e8;
+  -webkit-text-fill-color: #f5f0e8;
   cursor: pointer; user-select: none;
 }
-.nav-logo em { font-style: normal; -webkit-text-fill-color: var(--green); }
+.nav-logo em { font-style: normal; -webkit-text-fill-color: #c9a84c; color: #c9a84c; letter-spacing: 1px; }
 .nav-links { display: flex; align-items: center; gap: 8px; }
 
 .nav-btn {
@@ -795,7 +795,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 </div>
 
 <nav>
-  <div class="nav-logo" onclick="showPage('landing')" style="display:flex;align-items:center;cursor:pointer"><img src="logo.svg" alt="ReceiptAI" style="height:44px;width:auto;"></div>
+  <div class="nav-logo" onclick="showPage('landing')">Receipt<em>AI</em></div>
   <div class="nav-links" id="nav-links">
     <button class="nav-btn ghost" onclick="showPage('login')">Sign In</button>
     <button class="nav-btn primary" onclick="showPage('signup')">Get Started</button>
