@@ -85,6 +85,10 @@ async function getAuthUser(req) {
 async function isSubscriptionActive(userId) {
   const { data } = await getSupabase()
     .from('users').select('plan').eq('id', userId).single();
+  if (!data) {
+    await getSupabase().from('users').upsert({ id: userId, plan: 'free' }, { onConflict: 'id', ignoreDuplicates: true });
+    return false;
+  }
   return data?.plan === 'pro';
 }
 
