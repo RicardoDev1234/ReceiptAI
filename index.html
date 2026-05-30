@@ -1678,13 +1678,13 @@ async function saveExpense() {
   document.getElementById('expenses-empty')?.remove();
   const tbody=document.getElementById('expenses-tbody');
   const row=document.createElement('tr');
-  row.innerHTML=`<td><div style="display:flex;align-items:center;gap:10px;">${vendorLogoHtml(exp.vendor,40)}<div><div class="exp-vendor">${esc(exp.vendor)}</div><span class="tag tg">${esc(exp.category)}</span></div></div></td><td>${esc(exp.date)}</td><td style="color:var(--gold);font-weight:700">${esc(exp.amount)}</td>`;
+  row.innerHTML=`<td><div style="display:flex;align-items:center;gap:10px;">${vendorLogoHtml(exp.vendor,48)}<div><div class="exp-vendor">${esc(exp.vendor)}</div><span class="tag tg">${esc(exp.category)}</span></div></div></td><td>${esc(exp.date)}</td><td style="color:var(--gold);font-weight:700">${esc(exp.amount)}</td>`;
   tbody.insertBefore(row,tbody.firstChild);
   const recentEmpty=document.getElementById('recent-empty'); if(recentEmpty) recentEmpty.remove();
   const recentList=document.getElementById('recent-list');
   if(recentList){
     const rrow=document.createElement('div'); rrow.className='rcpt-row';
-    rrow.innerHTML=`${vendorLogoHtml(exp.vendor)}<div class="rcpt-info"><div class="rcpt-name">${esc(exp.vendor)}</div><div class="rcpt-meta"><span class="tag tg">${esc(exp.category)}</span><span class="rcpt-date">${esc(exp.date)}</span></div></div><div class="rcpt-amt">${esc(exp.amount)}</div>`;
+    rrow.innerHTML=`${vendorLogoHtml(exp.vendor,48)}<div class="rcpt-info"><div class="rcpt-name">${esc(exp.vendor)}</div><div class="rcpt-meta"><span class="tag tg">${esc(exp.category)}</span><span class="rcpt-date">${esc(exp.date)}</span></div></div><div class="rcpt-amt">${esc(exp.amount)}</div>`;
     recentList.insertBefore(rrow,recentList.firstChild);
     while(recentList.children.length>5) recentList.removeChild(recentList.lastChild);
   }
