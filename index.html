@@ -1118,6 +1118,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
         <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleFile(this)"/>
         <div id="preview-area" style="display:none">
           <img id="preview-img" class="preview-img" src="" alt="Receipt preview"/>
+          <button onclick="document.getElementById('scan-drop').style.display='block';document.getElementById('preview-area').style.display='none';document.getElementById('file-input').value='';" style="width:100%;padding:10px;font-size:13px;border:1px solid rgba(201,168,76,0.3);border-radius:11px;cursor:pointer;background:transparent;color:#c9a84c;margin-bottom:10px;">&#8592; Change Image</button>
           <button class="btn-gold" onclick="if(userPlan!=='pro'){showTrialModal();return;} analyzeReceipt()" style="width:100%;padding:14px;font-size:15px;border:none;border-radius:11px;cursor:pointer;justify-content:center"><i class="ti ti-wand" style="margin-right:6px"></i> Analyze with AI</button>
         </div>
       </div>
