@@ -1840,7 +1840,7 @@ async function loadExpenses() {
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:10px;">${vendorLogoHtml(exp.vendor,40)}<div><div class="exp-vendor">${esc(exp.vendor)}</div><span class="tag tg">${esc(exp.category)}</span></div></div></td><td>${esc(exp.date)}</td><td style="color:var(--gold);font-weight:700">${esc(exp.amount)}</td>`;
     tbody.appendChild(tr);
-    if(i<5&&recentList){const rrow=document.createElement('div');rrow.className='rcpt-row';rrow.innerHTML=`<div class="rcpt-ico" style="background:var(--gold-dim)">🧾</div><div class="rcpt-info"><div class="rcpt-name">${esc(exp.vendor)}</div><div class="rcpt-meta"><span class="tag tg">${esc(exp.category)}</span><span class="rcpt-date">${esc(exp.date)}</span></div></div><div class="rcpt-amt">${esc(exp.amount)}</div>`;recentList.appendChild(rrow);}
+    if(i<5&&recentList){const rrow=document.createElement('div');rrow.className='rcpt-row';rrow.innerHTML=`${vendorLogoHtml(exp.vendor,48)}<div class="rcpt-info"><div class="rcpt-name">${esc(exp.vendor)}</div><div class="rcpt-meta"><span class="tag tg">${esc(exp.category)}</span><span class="rcpt-date">${esc(exp.date)}</span></div></div><div class="rcpt-amt">${esc(exp.amount)}</div>`;recentList.appendChild(rrow);}
   });
   updateDashboardKPIs();
 }
