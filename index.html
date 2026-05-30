@@ -1933,7 +1933,15 @@ function showToast(msg,isErr){
         showToast('Please sign in to access your Pro account.',true);
       }
     } else {
-      if(currentUser){showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();}
+      if(currentUser){
+        showApp();applyAdminVisibility();
+        try { await loadUserProfile(); } catch(e) {}
+        try { await loadExpenses(); } catch(e) {}
+        try {
+          const sr=await fetch(RAIL+'/api/subscription-status',{headers:{'Authorization':'Bearer '+sessionToken}});
+          if(sr.ok){const sd=await sr.json();if(sd.active)setUserPlan('pro');}
+        } catch(e) {}
+      }
     }
 
     client.auth.onAuthStateChange(async (event,session)=>{
