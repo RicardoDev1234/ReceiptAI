@@ -1815,7 +1815,7 @@ async function loadExpenses() {
   if(!sessionToken) return;
   let data;
   try {
-    const res=await fetch(`${RAIL}/api/expenses`,{headers:{'Authorization':`Bearer ${sessionToken}`}});
+    const res=await fetch(`${RAIL}/api/expenses?t=${Date.now()}`,{headers:{'Authorization':`Bearer ${sessionToken}`,'Cache-Control':'no-cache'}});
     if(res.status===401){showPage('login');return;}
     if(res.status===402){return;} // checkAndShowTrialModal handles the modal on load
     if(!res.ok){console.warn('[loadExpenses] HTTP',res.status);return;}
