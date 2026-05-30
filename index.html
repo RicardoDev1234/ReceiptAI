@@ -1831,7 +1831,9 @@ async function loadExpenses() {
   document.getElementById('expenses-empty')?.remove();
   document.getElementById('recent-empty')?.remove();
   const tbody=document.getElementById('expenses-tbody');
+  if(tbody) tbody.innerHTML = '';
   const recentList=document.getElementById('recent-list');
+  if(recentList) recentList.innerHTML = '';
   data.forEach((row,i)=>{
     const exp={vendor:row.vendor||'Unknown',date:row.date||'',amount:row.amount!=null?(row.currency&&row.currency!=='USD'?row.currency+' ':'')+parseFloat(row.amount).toFixed(2):'0.00',tax:row.tax!=null&&row.tax>0?'$'+parseFloat(row.tax).toFixed(2):'',category:row.category||'Other',payment:row.payment||'',notes:row.notes||''};
     expenses.push(exp);
