@@ -395,7 +395,7 @@ app.get('/api/expenses', requireAuth, async (req, res) => {
 });
 
 /* ── POST /api/expenses ── */
-app.post('/api/expenses', requireSubscription, async (req, res) => {
+app.post('/api/expenses', requireAuth, async (req, res) => {
   try {
     const user = req.authUser;
 
