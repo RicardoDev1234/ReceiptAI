@@ -1936,11 +1936,11 @@ function showToast(msg,isErr){
       if(currentUser){
         showApp();applyAdminVisibility();
         try { await loadUserProfile(); } catch(e) {}
-        try { await loadExpenses(); } catch(e) {}
         try {
           const sr=await fetch(RAIL+'/api/subscription-status',{headers:{'Authorization':'Bearer '+sessionToken}});
           if(sr.ok){const sd=await sr.json();if(sd.active)setUserPlan('pro');}
         } catch(e) {}
+        try { await loadExpenses(); } catch(e) {}
       }
     }
 
