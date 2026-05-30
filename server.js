@@ -376,7 +376,7 @@ app.post('/api/cancel-subscription', requireAuth, async (req, res) => {
 });
 
 /* ── GET /api/expenses ── */
-app.get('/api/expenses', requireSubscription, async (req, res) => {
+app.get('/api/expenses', requireAuth, async (req, res) => {
   try {
     const user = req.authUser;
 
