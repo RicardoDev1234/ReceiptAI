@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ReceiptAI">
   <meta name="application-name" content="ReceiptAI">
-  <meta name="theme-color" content="#C9A84C">
+  <meta name="theme-color" content="#0ea5e9">
   <meta name="description" content="Scan receipts, track expenses and manage your finances with AI.">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon-180.png">
@@ -24,21 +24,21 @@
   --black:  #1e1e1e;
   --black2: #252525;
   --black3: #2c2c2c;
-  --gold:   #C9A84C;
-  --gold2:  #E8C97A;
-  --gold3:  #A8872C;
-  --gold-dim: #C9A84C1A;
-  --gold-glow: #C9A84C33;
-  --green: #c9a84c;
+  --gold:   #0ea5e9;
+  --gold2:  #38bdf8;
+  --gold3:  #0284c7;
+  --gold-dim: #0ea5e91A;
+  --gold-glow: #0ea5e933;
+  --green: #0ea5e9;
   --green2: #b8964a;
-  --green-dim: #c9a84c1A;
-  --green-glow: #c9a84c33;
+  --green-dim: #0ea5e91A;
+  --green-glow: #0ea5e933;
   --white:  #F5F0E8;
   --white2: #B8B4AC;
   --white3: #7A776F;
   --gray:   #252525;
   --gray2:  #303030;
-  --border: #C9A84C28;
+  --border: #0ea5e928;
   --border2: #FFFFFF0C;
   --radius: 14px;
 }
@@ -73,7 +73,7 @@ nav {
   -webkit-text-fill-color: #f5f0e8;
   cursor: pointer; user-select: none;
 }
-.nav-logo em { font-style: normal; -webkit-text-fill-color: #c9a84c; color: #c9a84c; letter-spacing: 1px; }
+.nav-logo em { font-style: normal; -webkit-text-fill-color: #0ea5e9; color: #0ea5e9; letter-spacing: 1px; }
 .nav-links { display: flex; align-items: center; gap: 8px; }
 
 .nav-btn {
@@ -102,19 +102,19 @@ nav {
 .hero-glow-1 {
   position: absolute; top: -160px; left: 50%; transform: translateX(-60%);
   width: 700px; height: 700px;
-  background: radial-gradient(circle, #c9a84c0e 0%, transparent 68%);
+  background: radial-gradient(circle, #0ea5e90e 0%, transparent 68%);
   pointer-events: none;
 }
 .hero-glow-2 {
   position: absolute; bottom: -120px; right: -100px;
   width: 500px; height: 500px;
-  background: radial-gradient(circle, #C9A84C0D 0%, transparent 68%);
+  background: radial-gradient(circle, #0ea5e90D 0%, transparent 68%);
   pointer-events: none;
 }
 
 .hero-badge { display: none !important; } .hero-badge-hidden {
   display: inline-flex; align-items: center; gap: 7px;
-  background: var(--green-dim); border: 1px solid #c9a84c40;
+  background: var(--green-dim); border: 1px solid #0ea5e940;
   color: var(--green); border-radius: 100px;
   padding: 6px 16px; font-size: 11.5px; font-weight: 700;
   letter-spacing: 1px; margin-bottom: 32px; text-transform: uppercase;
@@ -181,7 +181,7 @@ nav {
 .stat-num {
   font-family: 'Playfair Display', serif;
   font-size: 34px; font-weight: 900;
-  background: linear-gradient(135deg, #c9a84c, #e8c96a);
+  background: linear-gradient(135deg, #0ea5e9, #e8c96a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -244,7 +244,7 @@ nav {
   display: flex; align-items: center; justify-content: center;
   font-size: 24px; margin-bottom: 20px;
   background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25);
-  color: #c9a84c;
+  color: #0ea5e9;
   transition: background 0.2s, border-color 0.2s;
 }
 .feature-card:hover .feature-icon {
@@ -265,12 +265,12 @@ nav {
 .pricing-card.popular {
   background: linear-gradient(160deg, #161208 0%, var(--black2) 100%);
   border: 1.5px solid var(--gold);
-  box-shadow: 0 0 0 1px var(--gold3), 0 0 50px #C9A84C22, 0 32px 80px #C9A84C14;
+  box-shadow: 0 0 0 1px var(--gold3), 0 0 50px #0ea5e922, 0 32px 80px #0ea5e914;
   animation: gold-glow 3s ease-in-out infinite;
 }
 @keyframes gold-glow {
-  0%, 100% { box-shadow: 0 0 0 1px var(--gold3), 0 0 50px #C9A84C22, 0 32px 80px #C9A84C14; }
-  50%       { box-shadow: 0 0 0 1px var(--gold),  0 0 70px #C9A84C38, 0 32px 80px #C9A84C20; }
+  0%, 100% { box-shadow: 0 0 0 1px var(--gold3), 0 0 50px #0ea5e922, 0 32px 80px #0ea5e914; }
+  50%       { box-shadow: 0 0 0 1px var(--gold),  0 0 70px #0ea5e938, 0 32px 80px #0ea5e920; }
 }
 .popular-badge {
   position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
@@ -278,10 +278,10 @@ nav {
   color: var(--black); font-size: 10.5px; font-weight: 800;
   padding: 5px 20px; border-radius: 100px; white-space: nowrap;
   letter-spacing: 1px; text-transform: uppercase;
-  box-shadow: 0 4px 16px #C9A84C55;
+  box-shadow: 0 4px 16px #0ea5e955;
 }
 .save-banner {
-  display: none; background: var(--green-dim); border: 1px solid #c9a84c50;
+  display: none; background: var(--green-dim); border: 1px solid #0ea5e950;
   border-radius: 10px; padding: 10px 16px; text-align: center;
   font-size: 13.5px; font-weight: 700; color: var(--green);
   margin-bottom: 20px; letter-spacing: 0.2px;
@@ -349,7 +349,7 @@ nav {
 .toggle-track.on .toggle-knob { left: 26px; }
 .save-badge {
   background: var(--green-dim); color: var(--green);
-  border: 1px solid #c9a84c40; border-radius: 100px;
+  border: 1px solid #0ea5e940; border-radius: 100px;
   font-size: 11px; font-weight: 700; padding: 3px 11px;
 }
 
@@ -529,8 +529,8 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 }
 .sidebar-item:hover { color: var(--white); background: var(--gold-dim); }
 .sidebar-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-dim); }
-.sidebar-item .si-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; color: #c9a84c; }
-.sidebar-item.active .si-icon { color: #c9a84c; }
+.sidebar-item .si-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; color: #0ea5e9; }
+.sidebar-item.active .si-icon { color: #0ea5e9; }
 .sidebar-item:hover .si-icon { color: #e8c96a; }
 .sidebar-spacer { flex: 1; }
 .sidebar-bottom { border-top: 1px solid var(--border); }
@@ -617,7 +617,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 .ai-badge {
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--green-dim); color: var(--green);
-  border: 1px solid #c9a84c40; border-radius: 100px;
+  border: 1px solid #0ea5e940; border-radius: 100px;
   font-size: 11px; font-weight: 700; padding: 4px 13px;
   text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 18px;
 }
@@ -655,7 +655,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 .exp-table tr:hover td { background: var(--gold-dim); }
 
 .tag { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
-.tag.tl  { background: var(--green-dim); color: var(--green); border: 1px solid #c9a84c40; }
+.tag.tl  { background: var(--green-dim); color: var(--green); border: 1px solid #0ea5e940; }
 .tag.tg  { background: var(--gold-dim);  color: var(--gold);  border: 1px solid var(--border); }
 .tag.tgr { background: var(--black3);    color: var(--white2); border: 1px solid var(--border2); }
 
@@ -687,7 +687,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 .trial-modal-box {
   background: var(--black2); border: 1.5px solid var(--gold); border-radius: 26px;
   padding: 52px 48px; max-width: 460px; width: 100%; text-align: center;
-  box-shadow: 0 0 0 1px var(--gold3), 0 0 80px #C9A84C18, 0 40px 80px #00000070;
+  box-shadow: 0 0 0 1px var(--gold3), 0 0 80px #0ea5e918, 0 40px 80px #00000070;
 }
 .trial-modal-icon { font-size: 52px; line-height: 1; margin-bottom: 18px; }
 .trial-modal-title {
@@ -714,7 +714,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 
 .toast {
   position: fixed; bottom: 26px; right: 26px; z-index: 1000;
-  background: var(--black2); border: 1px solid #c9a84c40;
+  background: var(--black2); border: 1px solid #0ea5e940;
   color: var(--green); padding: 13px 22px; border-radius: 11px;
   font-size: 13.5px; font-weight: 500;
   transform: translateY(90px); opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
@@ -792,13 +792,13 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 </style>
 </head>
 <body>
-<div id="pwa-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;border:1px solid #c9a84c;border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 24px rgba(0,0,0,0.5);max-width:340px;width:90%">
+<div id="pwa-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;border:1px solid #0ea5e9;border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 24px rgba(0,0,0,0.5);max-width:340px;width:90%">
   <span style="font-size:22px">📱</span>
   <div style="flex:1">
     <div style="color:#fff;font-size:13px;font-weight:600">Add to Home Screen</div>
     <div style="color:#aaa;font-size:11px;margin-top:2px">Works on iPhone & Android like a real app</div>
   </div>
-  <button onclick="installPWA()" style="background:#c9a84c;color:#000;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">Install</button>
+  <button onclick="installPWA()" style="background:#0ea5e9;color:#000;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">Install</button>
   <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:none;border:none;color:#666;font-size:18px;cursor:pointer;padding:0 4px">×</button>
 </div>
 
@@ -969,7 +969,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 <div class="page" id="page-login">
   <div class="auth-wrap">
     <div class="auth-box">
-      <div class="auth-icon"><i class="ti ti-lock" style="font-size:28px;color:#c9a84c"></i></div>
+      <div class="auth-icon"><i class="ti ti-lock" style="font-size:28px;color:#0ea5e9"></i></div>
       <div class="auth-title">Welcome back</div>
       <div class="auth-sub">Sign in to your ReceiptAI account to continue.</div>
       <form id="login-form" onsubmit="submitLogin(event)" novalidate>
@@ -1004,7 +1004,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 <div class="page" id="page-signup">
   <div class="auth-wrap">
     <div class="auth-box">
-      <div class="auth-icon"><i class="ti ti-sparkles" style="font-size:28px;color:#c9a84c"></i></div>
+      <div class="auth-icon"><i class="ti ti-sparkles" style="font-size:28px;color:#0ea5e9"></i></div>
       <div class="auth-title">Create account</div>
       <div class="auth-sub">7 days free — no credit card required. Cancel anytime.</div>
       <form id="signup-form" onsubmit="submitSignup(event)" novalidate>
@@ -1118,7 +1118,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
         <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleFile(this)"/>
         <div id="preview-area" style="display:none">
           <img id="preview-img" class="preview-img" src="" alt="Receipt preview"/>
-          <button onclick="document.getElementById('scan-drop').style.display='block';document.getElementById('preview-area').style.display='none';document.getElementById('file-input').value='';" style="width:100%;padding:12px;font-size:14px;font-weight:600;border:1.5px solid rgba(201,168,76,0.5);border-radius:11px;cursor:pointer;background:rgba(201,168,76,0.08);color:#c9a84c;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.15)'" onmouseout="this.style.background='rgba(201,168,76,0.08)'"><i class="ti ti-photo-edit" style="font-size:16px"></i> Change Image</button>
+          <button onclick="document.getElementById('scan-drop').style.display='block';document.getElementById('preview-area').style.display='none';document.getElementById('file-input').value='';" style="width:100%;padding:12px;font-size:14px;font-weight:600;border:1.5px solid rgba(201,168,76,0.5);border-radius:11px;cursor:pointer;background:rgba(201,168,76,0.08);color:#0ea5e9;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.15)'" onmouseout="this.style.background='rgba(201,168,76,0.08)'"><i class="ti ti-photo-edit" style="font-size:16px"></i> Change Image</button>
           <button class="btn-gold" onclick="if(userPlan!=='pro'){showTrialModal();return;} analyzeReceipt()" style="width:100%;padding:14px;font-size:15px;border:none;border-radius:11px;cursor:pointer;justify-content:center"><i class="ti ti-wand" style="margin-right:6px"></i> Analyze with AI</button>
         </div>
       </div>
@@ -1241,7 +1241,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
 
         <!-- PRO STATUS CARD -->
         <div id="billing-pro-card" style="display:none;max-width:520px;margin:0 auto">
-          <div class="card" style="text-align:center;padding:48px 44px;border-color:var(--gold);background:linear-gradient(160deg,#161208 0%,var(--black2) 100%);box-shadow:0 0 0 1px var(--gold3),0 0 50px #C9A84C18">
+          <div class="card" style="text-align:center;padding:48px 44px;border-color:var(--gold);background:linear-gradient(160deg,#161208 0%,var(--black2) 100%);box-shadow:0 0 0 1px var(--gold3),0 0 50px #0ea5e918">
             <div style="font-size:52px;margin-bottom:14px;line-height:1">✦</div>
             <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">You're on Pro!</div>
             <div style="font-size:14.5px;color:var(--white2);margin-bottom:32px;font-weight:300">All Pro features are unlocked and active on your account.</div>
@@ -1270,7 +1270,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
             </div>
           </div>
           <div class="billing-plans">
-            <div class="pricing-card" style="background:linear-gradient(160deg,#0a1a0a 0%,#0f1f0f 100%);border:1.5px solid var(--green);box-shadow:0 0 0 1px #c9a84c40,0 0 40px #2EAD2218,0 24px 60px #2EAD2210">
+            <div class="pricing-card" style="background:linear-gradient(160deg,#0a1a0a 0%,#0f1f0f 100%);border:1.5px solid var(--green);box-shadow:0 0 0 1px #0ea5e940,0 0 40px #2EAD2218,0 24px 60px #2EAD2210">
               <div class="plan-name" style="color:var(--green)">Free Trial</div>
               <div class="plan-price" style="color:var(--green)"><sup style="font-size:24px">$</sup>0<sub style="font-size:16px;color:var(--white2)">/mo</sub></div>
               <div class="plan-note">7 days free — then $7.99/mo</div>
@@ -1722,7 +1722,7 @@ function updateDashboardKPIs() {
   updateBarChart();
 }
 
-const BAR_COLORS={'Food & Drink':'var(--gold)','Travel':'var(--green)','Office Supplies':'#8B7030','Software & Subscriptions':'#C9A84C88','Marketing':'#5B9B5B','Utilities':'#7A7A7A','Other':'var(--gray2)'};
+const BAR_COLORS={'Food & Drink':'var(--gold)','Travel':'var(--green)','Office Supplies':'#8B7030','Software & Subscriptions':'#0ea5e988','Marketing':'#5B9B5B','Utilities':'#7A7A7A','Other':'var(--gray2)'};
 
 function updateBarChart() {
   const chart=document.getElementById('chart-bars'); if(!chart) return;
@@ -1824,12 +1824,12 @@ function vendorLogoHtml(vendor, size) {
   img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:8px;';
   img.onerror = function() {
     div.style.background = '#1e1e1e';
-    div.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:800;font-size:'+(size*0.45)+'px;color:#c9a84c;">'+initial+'</div>';
+    div.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:800;font-size:'+(size*0.45)+'px;color:#0ea5e9;">'+initial+'</div>';
   };
   img.onload = function() {
     if(this.naturalWidth < 10) {
       div.style.background = '#1e1e1e';
-      div.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:800;font-size:'+(size*0.45)+'px;color:#c9a84c;">'+initial+'</div>';
+      div.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:800;font-size:'+(size*0.45)+'px;color:#0ea5e9;">'+initial+'</div>';
     }
   };
   div.appendChild(img);
@@ -1889,8 +1889,8 @@ async function loadAdminStats() {
       tbody.innerHTML=d.recentUsers.map(u=>{
         const date=u.created_at?new Date(u.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
         const planTag=u.plan==='pro'
-          ?`<span style="background:#C9A84C22;color:var(--gold);border:1px solid var(--gold3);border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600">✦ Pro</span>`
-          :`<span style="background:#2EAD2215;color:var(--green);border:1px solid #c9a84c40;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600">Free</span>`;
+          ?`<span style="background:#0ea5e922;color:var(--gold);border:1px solid var(--gold3);border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600">✦ Pro</span>`
+          :`<span style="background:#2EAD2215;color:var(--green);border:1px solid #0ea5e940;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600">Free</span>`;
         return `<tr>
           <td style="color:var(--white);font-weight:500">${esc(u.full_name||'Unknown')}</td>
           <td style="color:var(--white2);font-size:13px">${esc(u.email||'')}</td>
