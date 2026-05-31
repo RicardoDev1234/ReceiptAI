@@ -1070,7 +1070,7 @@ footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="sidebar-brand-name">ReceiptAI</div>
-        <div class="sidebar-brand-tag">Smart Expense Tracker</div>
+        <div class="sidebar-brand-tag" id="sidebar-username">Smart Expense Tracker</div>
       </div>
       <div class="sidebar-section-label">Main</div>
       <div class="sidebar-item active" data-section="dashboard" onclick="showSection(this,'dashboard')"><span class="si-icon"><i class="ti ti-layout-dashboard"></i></span> Dashboard</div>
@@ -1967,8 +1967,15 @@ function showToast(msg,isErr){
       if(event==='SIGNED_IN' && session?.user && !isCheckoutSuccess){
         const onAppPage = document.getElementById('page-app')?.classList.contains('active');
         if(!onAppPage){
-          await loadUserProfile();
-          await loadExpenses();
+          expenses=[]; setUserPlan('free');
+          const tb=document.getElementById('expenses-tbody'); if(tb) tb.innerHTML='';
+          const rl=document.getElementById('recent-list'); if(rl) rl.innerHTML='';
+          try { await loadUserProfile(); } catch(e) {}
+          try {
+            const sr=await fetch(RAIL+'/api/subscription-status',{headers:{'Authorization':'Bearer '+sessionToken}});
+            if(sr.ok){const sd=await sr.json();if(sd.active)setUserPlan('pro');}
+          } catch(e) {}
+          try { await loadExpenses(); } catch(e) {}
           showApp();
           applyAdminVisibility();
         }
