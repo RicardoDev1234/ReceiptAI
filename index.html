@@ -1748,6 +1748,8 @@ function requirePro() { if(userPlan!=='pro') showTrialModal(); }
 
 function setUserPlan(plan) {
   userPlan=plan;
+  const planTag = document.querySelector('.sidebar-brand-tag');
+  if(planTag) planTag.textContent = plan==='pro' ? 'Pro Plan' : 'Free Plan';
   const proCards=['rc-monthly','rc-annual','rc-category','rc-csv','excel-card'];
   proCards.forEach(id=>{const card=document.getElementById(id);if(!card)return;if(plan==='pro'){card.classList.remove('locked');card.querySelector('.pro-badge').textContent='\u2713 Pro';}else{card.classList.add('locked');card.querySelector('.pro-badge').textContent='\uD83D\uDD12 Pro';}});
   const proCard=document.getElementById('billing-pro-card');
