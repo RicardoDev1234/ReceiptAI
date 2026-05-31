@@ -1547,6 +1547,9 @@ async function submitLogin(e) {
     currentUser  = json.user;
     sessionToken = json.session?.access_token || null;
     expenses = []; setUserPlan('free');
+    const _uname = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || currentUser?.email?.split('@')[0] || 'My Account';
+    const _uel = document.getElementById('sidebar-username');
+    if(_uel) _uel.textContent = 'Welcome, ' + _uname;
     const tbody=document.getElementById('expenses-tbody'); if(tbody) tbody.innerHTML='';
     const rl=document.getElementById('recent-list'); if(rl) rl.innerHTML='';
     const client = sb();
@@ -1790,7 +1793,7 @@ async function loadUserProfile() {
     if(data?.country){userCountry=data.country;applyTaxVisibility();}
   } catch(e) { console.warn('[loadUserProfile]', e.message); }
   // Show username in sidebar
-  const uname = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || currentUser?.email?.split('@')[0] || 'My Account';
+  const uname = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || currentUser?.raw_user_meta_data?.full_name || currentUser?.email?.split('@')[0] || 'My Account';
   const el = document.getElementById('sidebar-username');
   if(el) el.textContent = 'Welcome, ' + uname;
 }
