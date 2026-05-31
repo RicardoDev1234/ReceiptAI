@@ -1546,6 +1546,9 @@ async function submitLogin(e) {
     if (!res.ok) throw new Error(json.error || 'Sign in failed.');
     currentUser  = json.user;
     sessionToken = json.session?.access_token || null;
+    expenses = []; setUserPlan('free');
+    const tbody=document.getElementById('expenses-tbody'); if(tbody) tbody.innerHTML='';
+    const rl=document.getElementById('recent-list'); if(rl) rl.innerHTML='';
     const client = sb();
     if (client && json.session) await client.auth.setSession(json.session);
     // Re-fetch session to ensure it is fully persisted
