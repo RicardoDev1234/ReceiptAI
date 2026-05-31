@@ -1787,6 +1787,10 @@ async function loadUserProfile() {
     if(data?.plan==='pro') setUserPlan('pro');
     if(data?.country){userCountry=data.country;applyTaxVisibility();}
   } catch(e) { console.warn('[loadUserProfile]', e.message); }
+  // Show username in sidebar
+  const uname = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || currentUser?.email?.split('@')[0] || 'My Account';
+  const el = document.getElementById('sidebar-username');
+  if(el) el.textContent = 'Welcome, ' + uname;
 }
 
 
