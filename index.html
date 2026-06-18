@@ -2157,6 +2157,91 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
 });
 
+// ── PASSWORD RESET MODAL ──
+function injectResetModal() {
+  const modal = document.createElement('div');
+  modal.id = 'reset-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:99999;';
+  modal.innerHTML = `
+    <div style="background:#141414;border:1px solid #0ea5e930;border-radius:20px;padding:32px 28px;width:90%;max-width:380px;font-family:-apple-system,sans-serif;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:36px;margin-bottom:8px;">🔐</div>
+        <h2 style="color:#fff;font-size:22px;font-weight:700;margin:0 0 6px;">Set new password</h2>
+        <p style="color:#94a3b8;font-size:14px;margin:0;">Choose a strong password for your account</p>
+      </div>
+      <p id="reset-modal-error" style="color:#f87171;font-size:13px;min-height:18px;margin:0 0 12px;text-align:center;"></p>
+      <div style="margin-bottom:14px;">
+        <label style="color:#94a3b8;font-size:13px;display:block;margin-bottom:6px;">New password</label>
+        <input id="reset-new-pass" type="password" placeholder="At least 6 characters"
+          style="width:100%;box-sizing:border-box;background:#0ea5e910;border:1px solid #0ea5e940;border-radius:10px;padding:13px 14px;color:#fff;font-size:15px;outline:none;" />
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="color:#94a3b8;font-size:13px;display:block;margin-bottom:6px;">Confirm password</label>
+        <input id="reset-confirm-pass" type="password" placeholder="Repeat your password"
+          style="width:100%;box-sizing:border-box;background:#0ea5e910;border:1px solid #0ea5e940;border-radius:10px;padding:13px 14px;color:#fff;font-size:15px;outline:none;" />
+      </div>
+      <button id="reset-modal-btn"
+        style="width:100%;background:linear-gradient(135deg,#0369a1,#06b6d4);border:none;border-radius:12px;padding:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">
+        Update password
+      </button>
+    </div>`;
+  document.body.appendChild(modal);
+
+  document.getElementById('reset-modal-btn').addEventListener('click', async () => {
+    const pass    = document.getElementById('reset-new-pass').value;
+    const confirm = document.getElementById('reset-confirm-pass').value;
+    const errEl   = document.getElementById('reset-modal-error');
+    const btn     = document.getElementById('reset-modal-btn');
+    errEl.textContent = '';
+    if (!pass || !confirm)  { errEl.textContent = 'Please fill in both fields.'; return; }
+    if (pass.length < 6)    { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+    if (pass !== confirm)   { errEl.textContent = 'Passwords do not match.'; return; }
+    btn.textContent = 'Updating...'; btn.disabled = true;
+    const sb = window._sb || (window.supabase && window.supabase.createClient(
+      'https://dnoonrvuetsvbrxaapbr.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRub29ucnZ1ZXRzdmJyeGFhcGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwMzgwNTksImV4cCI6MjA1OTYxNDA1OX0.2YbFeBIBiLbFuKMlFbDiBa_yMWtFgkBPXSMuFSIoirs'
+    ));
+    const { error } = await sb.auth.updateUser({ password: pass });
+    if (error) {
+      errEl.textContent = error.message;
+      btn.textContent = 'Update password'; btn.disabled = false;
+    } else {
+      await sb.auth.signOut();
+      modal.innerHTML = `
+        <div style="background:#141414;border:1px solid #0ea5e930;border-radius:20px;padding:40px 28px;width:90%;max-width:380px;font-family:-apple-system,sans-serif;text-align:center;">
+          <div style="font-size:48px;margin-bottom:16px;">✅</div>
+          <h2 style="color:#fff;font-size:22px;font-weight:700;margin:0 0 8px;">Password updated!</h2>
+          <p style="color:#94a3b8;font-size:14px;margin:0 0 24px;">You can now sign in with your new password.</p>
+          <button onclick="document.getElementById('reset-modal').remove();window.location.href='/index.html';"
+            style="background:linear-gradient(135deg,#0369a1,#06b6d4);border:none;border-radius:12px;padding:14px 32px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;">
+            Go to sign in
+          </button>
+        </div>`;
+    }
+  });
+}
+
+// Check for recovery token in URL hash on page load
+(function checkRecoveryToken() {
+  const hash = window.location.hash;
+  if (!hash) return;
+  const params = new URLSearchParams(hash.replace('#', '?'));
+  if (params.get('type') === 'recovery' && params.get('access_token')) {
+    const sb = window._sb || (window.supabase && window.supabase.createClient(
+      'https://dnoonrvuetsvbrxaapbr.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRub29ucnZ1ZXRzdmJyeGFhcGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwMzgwNTksImV4cCI6MjA1OTYxNDA1OX0.2YbFeBIBiLbFuKMlFbDiBa_yMWtFgkBPXSMuFSIoirs'
+    ));
+    if (sb) {
+      sb.auth.setSession({
+        access_token: params.get('access_token'),
+        refresh_token: params.get('refresh_token') || ''
+      }).then(() => injectResetModal());
+    } else {
+      window.addEventListener('DOMContentLoaded', () => injectResetModal());
+    }
+  }
+})();
+
 </script>
 </body>
 </html>
