@@ -2159,17 +2159,19 @@ window.addEventListener('appinstalled', () => {
 
 // ── PASSWORD RESET MODAL ──
 function injectResetModal(initError) {
-  // Hide ALL existing body children instantly
-  Array.from(document.body.children).forEach(el => { el.style.display = 'none'; });
   document.body.style.overflow = 'hidden';
-  document.body.style.background = '#080C12';
+  // Inject a style tag to nuke everything except our modal
+  const nukeStyle = document.createElement('style');
+  nukeStyle.id = 'reset-nuke';
+  nukeStyle.textContent = 'body > *:not(#reset-bg):not(#reset-modal) { opacity: 0 !important; pointer-events: none !important; }';
+  document.head.appendChild(nukeStyle);
   const bg = document.createElement('div');
   bg.id = 'reset-bg';
-  bg.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#080C12;z-index:99990;';
+  bg.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#080C12;z-index:2147483646;';
   document.body.appendChild(bg);
   const modal = document.createElement('div');
   modal.id = 'reset-modal';
-  modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;z-index:99999;';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;z-index:2147483647;';
   modal.innerHTML = `
     <div style="background:#141414;border:1px solid #0ea5e930;border-radius:20px;padding:32px 28px;width:90%;max-width:380px;font-family:-apple-system,sans-serif;">
       <div style="text-align:center;margin-bottom:20px;">
@@ -2241,36 +2243,40 @@ function injectResetModal(initError) {
   });
 }
 
-// Check for recovery token in URL hash on page load
-(function checkRecoveryToken() {
-  const hash = window.location.hash;
-  if (!hash) return;
-  const params = new URLSearchParams(hash.replace('#', '?'));
-  const accessToken  = params.get('access_token');
-  const refreshToken = params.get('refresh_token') || '';
-  const type         = params.get('type');
-  if (type !== 'recovery' || !accessToken) return;
-
-  // Wait for DOM + Supabase to be ready before setting session
-  function trySetSession(attempts) {
+// PASSWORD RECOVERY — listen for Supabase PASSWORD_RECOVERY event
+(function setupPasswordRecovery() {
+  function waitForSb(attempts) {
     const sb = window._sb;
     if (sb) {
-      sb.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-        .then(({ error }) => {
-          if (error) { console.error('setSession error:', error.message); injectResetModal('Auth error: ' + error.message); }
-          else injectResetModal();
-        });
+      // Check URL hash for recovery token (Supabase v2 pkce flow)
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        const params = new URLSearchParams(hash.replace('#', '?'));
+        if (params.get('type') === 'recovery') {
+          sb.auth.setSession({
+            access_token: params.get('access_token'),
+            refresh_token: params.get('refresh_token') || ''
+          }).then(({ error }) => {
+            if (error) injectResetModal('Session error: ' + error.message);
+            else injectResetModal();
+          });
+          return;
+        }
+      }
+      // Also listen for the onAuthStateChange PASSWORD_RECOVERY event
+      sb.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          injectResetModal();
+        }
+      });
     } else if (attempts > 0) {
-      setTimeout(() => trySetSession(attempts - 1), 300);
-    } else {
-      injectResetModal('Connection error. Please try again.');
+      setTimeout(() => waitForSb(attempts - 1), 300);
     }
   }
-
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => trySetSession(20));
+    document.addEventListener('DOMContentLoaded', () => waitForSb(30));
   } else {
-    trySetSession(20);
+    waitForSb(30);
   }
 })();
 
