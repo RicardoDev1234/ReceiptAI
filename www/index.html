@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ReceiptAI">
+  <meta name="application-name" content="ReceiptAI">
+  <meta name="theme-color" content="#0ea5e9">
+  <meta name="description" content="Scan receipts, track expenses and manage your finances with AI.">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ReceiptAI — Smart Expense Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(async () => {
+  const sb = window.supabase.createClient("https://dnoonrvuetsvbrxaapbr.supabase.co", "sb_publishable_x7fXgf7s6Ibke1DlcctxLA_56cezBt0");
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) window.location.replace("onboarding.html");
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --black:  #0f0f0f;
+  --black2: #141414;
+  --black3: #1e1e1e;
+  --gold:   #0ea5e9;
+  --gold2:  #38bdf8;
+  --gold3:  #0284c7;
+  --gold-dim: #0ea5e91A;
+  --gold-glow: #0ea5e933;
+  --green: #0ea5e9;
+  --green2: #b8964a;
+  --green-dim: #0ea5e91A;
+  --green-glow: #0ea5e933;
+  --white:  #F5F0E8;
+  --white2: #B8B4AC;
+  --white3: #7A776F;
+  --gray:   #141414;
+  --gray2:  #303030;
+  --border: #0ea5e928;
+  --border2: #FFFFFF0C;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--black);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--black2); }
+::-webkit-scrollbar-thumb { background: var(--gold3); border-radius: 2px; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(8,12,18,0.92); backdrop-filter: blur(18px);
+  border-bottom: 1px solid #0ea5e940;
+  padding: 0 40px; height: 66px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 22px; font-weight: 800; letter-spacing: 1px;
+  color: #f5f0e8;
+  -webkit-text-fill-color: #f5f0e8;
+  cursor: pointer; user-select: none;
+}
+.nav-logo em { font-style: normal; -webkit-text-fill-color: #0ea5e9; color: #0ea5e9; letter-spacing: 1px; }
+.nav-links { display: flex; align-items: center; gap: 8px; }
+
+.nav-btn {
+  padding: 9px 20px; border-radius: 9px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.1px;
+}
+.nav-btn.ghost {
+  background: transparent; color: var(--white2);
+  border: 1px solid var(--border2);
+}
+.nav-btn.ghost:hover { border-color: var(--gold); color: var(--gold); }
+.nav-btn.primary { background: var(--gold); color: var(--black); font-weight: 700; }
+.nav-btn.primary:hover { background: var(--gold2); box-shadow: 0 4px 16px var(--gold-glow); }
+
+.page { display: none; padding-top: 66px; min-height: 100vh; }
+.page.active { display: block; }
+
+.hero {
+  min-height: auto;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center;
+  padding: 20px 24px 60px; position: relative; overflow: hidden;
+}
+.hero-glow-1 {
+  position: absolute; top: -160px; left: 50%; transform: translateX(-60%);
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, #0ea5e90e 0%, transparent 68%);
+  pointer-events: none;
+}
+.hero-glow-2 {
+  position: absolute; bottom: -120px; right: -100px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, #0ea5e90D 0%, transparent 68%);
+  pointer-events: none;
+}
+
+.hero-badge { display: none !important; } .hero-badge-hidden {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--green-dim); border: 1px solid #0ea5e940;
+  color: var(--green); border-radius: 100px;
+  padding: 6px 16px; font-size: 11.5px; font-weight: 700;
+  letter-spacing: 1px; margin-bottom: 32px; text-transform: uppercase;
+}
+.hero-badge .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.85); }
+}
+
+.hero h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(36px, 6.5vw, 72px);
+  font-weight: 800; line-height: 1.08;
+  letter-spacing: -1.5px; margin-bottom: 26px; max-width: 820px;
+}
+.hero h1 .gold {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero h1 .grn { color: var(--green); }
+.hero > p {
+  font-size: 19px; color: rgba(255,255,255,0.65); max-width: 520px;
+  line-height: 1.75; margin-bottom: 44px; font-weight: 300;
+}
+
+.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 64px; }
+
+.btn-gold {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 15px 34px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--black); border: none; border-radius: 11px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+}
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 28px var(--gold-glow); }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 15px 34px; background: transparent; color: var(--white);
+  border: 1px solid var(--border2); border-radius: 11px;
+  font-size: 15px; font-weight: 500; cursor: pointer;
+  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+}
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+.stats-row {
+  display: flex; gap: 40px; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 0;
+}
+.stat {
+  text-align: center;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 16px;
+  padding: 20px 28px;
+  min-width: 120px;
+  transition: border-color 0.2s;
+}
+.stat:hover { border-color: rgba(201,168,76,0.4); }
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 34px; font-weight: 900;
+  background: linear-gradient(135deg, #0ea5e9, #e8c96a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+.stat-label {
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 6px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.section { padding: 88px 24px; max-width: 1140px; margin: 0 auto; }
+.section-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--green); margin-bottom: 14px;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(30px, 4.5vw, 48px); font-weight: 900;
+  line-height: 1.08; margin-bottom: 18px; letter-spacing: -1px;
+}
+.section-title .gold {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.section-sub {
+  color: var(--white2); font-size: 16px; line-height: 1.65;
+  max-width: 520px; font-weight: 300;
+}
+
+.features-bg {
+  background: linear-gradient(180deg, var(--black) 0%, var(--black2) 50%, var(--black) 100%);
+  border-top: 1px solid var(--border2); border-bottom: 1px solid var(--border2);
+}
+
+.features-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px; margin-top: 52px;
+}
+.feature-card {
+  background: var(--black3); border: 1px solid var(--border2);
+  border-radius: 18px; padding: 30px; transition: all 0.3s;
+  position: relative; overflow: hidden;
+}
+.feature-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; opacity: 0; transition: opacity 0.3s;
+  background: linear-gradient(90deg, var(--gold), var(--green));
+}
+.feature-card:hover {
+  border-color: var(--border); transform: translateY(-5px);
+  box-shadow: 0 20px 48px #00000060;
+}
+.feature-card:hover::after { opacity: 1; }
+.feature-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 20px;
+  background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25);
+  color: #0ea5e9;
+  transition: background 0.2s, border-color 0.2s;
+}
+.feature-card:hover .feature-icon {
+  background: rgba(201,168,76,0.15); border-color: rgba(201,168,76,0.5);
+}
+.feature-title { font-size: 15.5px; font-weight: 600; margin-bottom: 9px; color: var(--white); }
+.feature-desc { font-size: 13.5px; color: var(--white2); line-height: 1.65; font-weight: 300; }
+
+.pricing-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px; margin-top: 52px; max-width: 740px;
+}
+.pricing-card {
+  background: var(--black3); border: 1px solid var(--border2);
+  border-radius: 26px; padding: 44px; position: relative; transition: all 0.3s;
+}
+.pricing-card:hover { transform: translateY(-5px); box-shadow: 0 20px 60px #00000055; }
+.pricing-card.popular {
+  background: linear-gradient(160deg, #161208 0%, var(--black2) 100%);
+  border: 1.5px solid var(--gold);
+  box-shadow: 0 0 0 1px var(--gold3), 0 0 50px #0ea5e922, 0 32px 80px #0ea5e914;
+  animation: gold-glow 3s ease-in-out infinite;
+}
+@keyframes gold-glow {
+  0%, 100% { box-shadow: 0 0 0 1px var(--gold3), 0 0 50px #0ea5e922, 0 32px 80px #0ea5e914; }
+  50%       { box-shadow: 0 0 0 1px var(--gold),  0 0 70px #0ea5e938, 0 32px 80px #0ea5e920; }
+}
+.popular-badge {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--black); font-size: 10.5px; font-weight: 800;
+  padding: 5px 20px; border-radius: 100px; white-space: nowrap;
+  letter-spacing: 1px; text-transform: uppercase;
+  box-shadow: 0 4px 16px #0ea5e955;
+}
+.save-banner {
+  display: none; background: var(--green-dim); border: 1px solid #0ea5e950;
+  border-radius: 10px; padding: 10px 16px; text-align: center;
+  font-size: 13.5px; font-weight: 700; color: var(--green);
+  margin-bottom: 20px; letter-spacing: 0.2px;
+}
+.pricing-trust {
+  text-align: center; margin-top: 28px;
+  font-size: 12.5px; color: var(--white3); font-weight: 400; line-height: 1.8;
+}
+.pricing-trust span { color: var(--gold3); }
+
+.plan-name {
+  font-size: 11px; font-weight: 700; color: var(--white3);
+  text-transform: uppercase; letter-spacing: 2px; margin-bottom: 18px;
+}
+.plan-price {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 58px; font-weight: 800; color: var(--white); line-height: 1;
+}
+.plan-price sup { font-size: 24px; vertical-align: super; }
+.plan-price sub {
+  font-size: 16px; font-weight: 400; color: var(--white2);
+  font-family: 'DM Sans', sans-serif; vertical-align: baseline;
+}
+.plan-note { font-size: 12.5px; color: var(--white3); margin: 10px 0 26px; min-height: 18px; }
+.plan-divider { height: 1px; background: var(--border2); margin-bottom: 24px; }
+.plan-features { list-style: none; margin-bottom: 32px; }
+.plan-features li {
+  font-size: 13.5px; color: var(--white2); padding: 9px 0;
+  display: flex; align-items: flex-start; gap: 10px; font-weight: 400;
+  border-bottom: 1px solid var(--border2);
+}
+.plan-features li:last-child { border-bottom: none; }
+.plan-features li .chk { color: var(--green); font-weight: 700; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.plan-features li .chk.gold { color: var(--gold); }
+
+.plan-btn {
+  width: 100%; padding: 15px; border-radius: 12px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  border: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.2px;
+}
+.plan-btn.gold-btn {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--black);
+}
+.plan-btn.gold-btn:hover { opacity: 0.92; transform: translateY(-2px); box-shadow: 0 8px 28px var(--gold-glow); }
+.plan-btn.outline-btn {
+  background: transparent; color: var(--white2);
+  border: 1px solid var(--border2);
+}
+.plan-btn.outline-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.toggle-row { display: flex; align-items: center; gap: 13px; margin-top: 26px; margin-bottom: 0; }
+.toggle-lbl { font-size: 14px; color: var(--white3); font-weight: 500; transition: color 0.2s; }
+.toggle-lbl.on { color: var(--gold); }
+.toggle-track {
+  width: 50px; height: 27px; background: var(--gray2); border-radius: 14px;
+  cursor: pointer; position: relative; transition: background 0.25s; flex-shrink: 0;
+}
+.toggle-track.on { background: var(--gold); }
+.toggle-knob {
+  width: 21px; height: 21px; background: var(--white); border-radius: 50%;
+  position: absolute; top: 3px; left: 3px; transition: left 0.25s; box-shadow: 0 1px 4px #0006;
+}
+.toggle-track.on .toggle-knob { left: 26px; }
+.save-badge {
+  background: var(--green-dim); color: var(--green);
+  border: 1px solid #0ea5e940; border-radius: 100px;
+  font-size: 11px; font-weight: 700; padding: 3px 11px;
+}
+
+.cta-strip {
+  background: linear-gradient(135deg, var(--black2), #1a1400);
+  border-top: 1px solid var(--border); border-bottom: 1px solid #0ea5e940;
+  padding: 72px 24px; text-align: center;
+}
+.cta-strip h2 {
+  font-family: 'Playfair Display', serif; font-size: clamp(26px, 4vw, 42px);
+  font-weight: 900; margin-bottom: 14px;
+}
+.cta-strip p { color: var(--white2); font-size: 16px; font-weight: 300; margin-bottom: 32px; }
+
+footer {
+  background: var(--black2); border-top: 1px solid var(--border2);
+  padding: 48px 24px; text-align: center;
+}
+.footer-logo {
+  font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+footer p { font-size: 13px; color: var(--white3); font-weight: 300; }
+
+.auth-wrap {
+  min-height: auto;
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px 24px;
+  background: radial-gradient(ellipse at 50% 0%, #2EAD220C 0%, transparent 60%);
+}
+.auth-box {
+  background: var(--black2); border: 1px solid var(--border);
+  border-radius: 22px; padding: 44px; width: 100%; max-width: 430px;
+  box-shadow: 0 32px 80px #00000080;
+}
+.auth-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: linear-gradient(135deg, var(--gold-dim), transparent);
+  border: 1px solid var(--border); display: flex; align-items: center;
+  justify-content: center; font-size: 22px; margin-bottom: 24px;
+}
+.auth-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 900; margin-bottom: 6px;
+}
+.auth-sub { font-size: 14px; color: var(--white2); margin-bottom: 34px; font-weight: 300; line-height: 1.5; }
+
+.auth-field { margin-bottom: 18px; }
+.auth-field label {
+  display: block; font-size: 11.5px; font-weight: 700;
+  color: var(--white2); text-transform: uppercase;
+  letter-spacing: 0.7px; margin-bottom: 7px;
+}
+.auth-field .input-wrap { position: relative; }
+.auth-field input {
+  width: 100%; padding: 13px 16px; background: var(--black3);
+  border: 1px solid var(--border2); border-radius: 11px; color: var(--white);
+  font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.auth-field input::placeholder { color: var(--white3); }
+.auth-field input:focus {
+  border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim);
+}
+.auth-field input.error {
+  border-color: #e05555; box-shadow: 0 0 0 3px #e0555520;
+}
+.auth-field input.valid { border-color: var(--green); }
+
+.eye-btn {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--white3);
+  font-size: 15px; padding: 4px; transition: color 0.2s; line-height: 1;
+}
+.eye-btn:hover { color: var(--gold); }
+
+.field-error {
+  font-size: 12px; color: #e07070; margin-top: 5px; display: none;
+}
+.field-error.show { display: block; }
+
+.pw-strength { margin-top: 8px; display: none; }
+.pw-strength.show { display: block; }
+.pw-bars { display: flex; gap: 4px; margin-bottom: 5px; }
+.pw-bar { flex: 1; height: 3px; border-radius: 2px; background: var(--gray2); transition: background 0.3s; }
+.pw-bar.weak   { background: #e05555; }
+.pw-bar.fair   { background: #e09055; }
+.pw-bar.good   { background: var(--gold); }
+.pw-bar.strong { background: var(--green); }
+.pw-label { font-size: 11px; color: var(--white3); }
+
+.auth-submit {
+  width: 100%; padding: 14.5px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--black); border: none; border-radius: 11px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; margin-top: 6px;
+  transition: all 0.2s; letter-spacing: 0.1px;
+}
+.auth-submit:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 8px 24px var(--gold-glow); }
+
+.auth-divider {
+  display: flex; align-items: center; gap: 12px; margin: 22px 0;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border2);
+}
+.auth-divider span { font-size: 12px; color: var(--white3); }
+
+.google-btn {
+  width: 100%; padding: 13px; background: transparent; color: var(--white);
+  border: 1px solid var(--border2); border-radius: 11px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+}
+.google-btn:hover { border-color: var(--gold); color: var(--gold); }
+.google-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+.auth-footer { text-align: center; margin-top: 22px; font-size: 13px; color: var(--white3); }
+.auth-footer a { color: var(--gold); cursor: pointer; font-weight: 600; }
+.auth-footer a:hover { text-decoration: underline; }
+
+.legal-wrap { max-width: 760px; margin: 0 auto; padding: 60px 24px 100px; }
+.legal-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--gold); font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; background: none;
+  padding: 0; margin-bottom: 40px; opacity: .85; transition: opacity .2s;
+}
+.legal-back:hover { opacity: 1; }
+.legal-logo {
+  font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px;
+}
+.legal-title { font-size: 34px; font-weight: 800; color: var(--white); margin-bottom: 6px; line-height: 1.2; }
+.legal-date { font-size: 13px; color: var(--white3); margin-bottom: 48px; }
+.legal-section { margin-bottom: 36px; }
+.legal-section h2 {
+  font-size: 16px; font-weight: 700; color: var(--gold);
+  text-transform: uppercase; letter-spacing: .8px;
+  margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border2);
+}
+.legal-section p { font-size: 15px; color: var(--white2); line-height: 1.75; margin-bottom: 10px; font-weight: 300; }
+.legal-section ul { padding-left: 20px; margin: 8px 0 10px; }
+.legal-section ul li { font-size: 15px; color: var(--white2); line-height: 1.75; margin-bottom: 6px; font-weight: 300; }
+.legal-section strong { color: var(--white); font-weight: 600; }
+.legal-section a { color: var(--gold); }
+
+.app-layout { display: flex; height: calc(100vh - 66px); overflow: hidden; }
+
+.sidebar {
+  width: 228px; background: var(--black2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+}
+.sidebar-brand { padding: 22px 20px 20px; border-bottom: 1px solid #0ea5e940; }
+.sidebar-brand-name {
+  font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 700;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.sidebar-brand-tag { font-size: 11px; color: var(--white3); font-weight: 400; margin-top: 2px; }
+
+.sidebar-section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white3); padding: 18px 20px 6px;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 20px; font-size: 13.5px; font-weight: 500;
+  color: var(--white2); cursor: pointer; transition: all 0.15s;
+  border-left: 3px solid transparent; user-select: none;
+}
+.sidebar-item:hover { color: var(--white); background: var(--gold-dim); }
+.sidebar-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-dim); }
+.sidebar-item .si-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; color: #0ea5e9; }
+.sidebar-item.active .si-icon { color: #0ea5e9; }
+.sidebar-item:hover .si-icon { color: #e8c96a; }
+.sidebar-spacer { flex: 1; }
+.sidebar-bottom { border-top: 1px solid var(--border); }
+
+.app-content { flex: 1; overflow-y: auto; padding: 36px; background: var(--black); }
+.app-section { display: none; }
+.app-section.active { display: block; }
+
+.page-hdr { margin-bottom: 30px; }
+.page-hdr h2 { font-family: 'Playfair Display', serif; font-size: 27px; font-weight: 900; letter-spacing: -0.5px; }
+.page-hdr p { color: var(--white2); font-size: 13.5px; margin-top: 5px; font-weight: 300; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 22px; }
+.kpi-card { background: var(--black2); border: 1px solid var(--border2); border-radius: 16px; padding: 22px; position: relative; overflow: hidden; }
+.kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.kpi-card.g::before { background: linear-gradient(90deg, var(--gold), transparent); }
+.kpi-card.gr::before { background: linear-gradient(90deg, var(--green), transparent); }
+.kpi-card.kpi-main { border-color: var(--green); box-shadow: 0 0 24px rgba(52,211,153,.12); padding: 28px 24px; }
+.kpi-label { font-size: 11px; color: var(--white3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 9px; font-weight: 600; }
+.kpi-value { font-family: 'DM Sans', sans-serif; font-size: 30px; font-weight: 800; }
+.kpi-card.kpi-main .kpi-value { font-size: 42px; }
+.kpi-value.gold-c { color: var(--gold); }
+.kpi-value.green-c { color: var(--green); }
+.kpi-trend { font-size: 12px; color: var(--white3); margin-top: 5px; }
+.kpi-trend.up { color: var(--green); }
+.kpi-trend.dn { color: #e07070; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+.card { background: var(--black2); border: 1px solid var(--border2); border-radius: 16px; padding: 22px; }
+.card-hdr { font-size: 11px; font-weight: 700; color: var(--white3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; }
+
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+.bar-row:last-child { margin-bottom: 0; }
+.bar-lbl { font-size: 12px; color: var(--white2); width: 68px; flex-shrink: 0; }
+.bar-track { flex: 1; height: 7px; background: var(--gray); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; }
+.bar-amt { font-size: 12px; color: var(--white); width: 52px; text-align: right; flex-shrink: 0; font-weight: 500; }
+
+.rcpt-list { display: flex; flex-direction: column; gap: 9px; }
+.rcpt-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 12px; background: var(--black3); border-radius: 11px;
+  border: 1px solid var(--border2); transition: border-color 0.15s; cursor: default;
+}
+.rcpt-row:hover { border-color: var(--border); }
+.rcpt-ico { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.rcpt-info { flex: 1; min-width: 0; }
+.rcpt-name { font-size: 14px; font-weight: 700; color: var(--white); }
+.rcpt-meta { display: flex; align-items: center; gap: 7px; margin-top: 4px; flex-wrap: wrap; }
+.rcpt-date { font-size: 11px; color: var(--white3); }
+.rcpt-amt { font-size: 14px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+
+.vendor-hero input {
+  font-size: 22px !important; font-weight: 700 !important;
+  color: var(--gold) !important; padding: 16px 18px !important;
+  border-color: var(--border) !important; letter-spacing: -0.3px;
+}
+.vendor-hero input:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 3px var(--gold-dim) !important; }
+.vendor-hero label { font-size: 12px !important; color: var(--gold) !important; }
+
+.exp-vendor { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+
+.billing-header { text-align: center; margin-bottom: 40px; }
+.billing-header h2 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; margin-bottom: 10px; }
+.billing-header p { color: var(--white2); font-size: 15px; font-weight: 300; }
+.billing-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; max-width: 680px; margin: 0 auto; }
+
+.scan-drop {
+  border: 2px dashed var(--border); border-radius: 22px;
+  padding: 68px 40px; text-align: center; cursor: pointer;
+  transition: all 0.3s; margin-bottom: 22px; position: relative;
+  background: var(--black2);
+}
+.scan-drop:hover, .scan-drop.over { border-color: var(--gold); background: var(--gold-dim); }
+.scan-drop .sd-icon { font-size: 56px; margin-bottom: 16px; }
+.scan-drop h3 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.scan-drop p { font-size: 13.5px; color: var(--white2); font-weight: 300; margin-bottom: 24px; }
+#file-input, #camera-input { display: none; }
+.scan-btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-camera { background: transparent; border: 1.5px solid var(--gold); color: var(--gold); padding: 11px 26px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-camera:hover { background: var(--gold-dim); }
+.preview-img { width: 100%; max-height: 290px; object-fit: contain; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 20px; }
+
+.ai-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--green-dim); color: var(--green);
+  border: 1px solid #0ea5e940; border-radius: 100px;
+  font-size: 11px; font-weight: 700; padding: 4px 13px;
+  text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 18px;
+}
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.rfield label { display: block; font-size: 11px; color: var(--white3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
+.rfield input, .rfield select {
+  width: 100%; padding: 11px 14px; background: var(--black3);
+  border: 1px solid var(--border2); border-radius: 9px; color: var(--white);
+  font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border 0.2s;
+}
+.rfield input:focus, .rfield select:focus { border-color: var(--gold); }
+.rfield select option { background: var(--black2); }
+.save-btn {
+  width: 100%; padding: 14.5px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--black); border: none; border-radius: 11px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: opacity 0.2s;
+}
+.save-btn:hover { opacity: 0.9; }
+
+.exp-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+.search-input {
+  padding: 10px 14px; background: var(--black2); border: 1px solid var(--border2);
+  border-radius: 10px; color: var(--white); font-size: 13px;
+  font-family: 'DM Sans', sans-serif; outline: none; width: 220px; transition: border 0.2s;
+}
+.search-input:focus { border-color: var(--gold); }
+.search-input::placeholder { color: var(--white3); }
+
+.exp-table { width: 100%; border-collapse: collapse; }
+.exp-table th { font-size: 11px; color: var(--white3); text-transform: uppercase; letter-spacing: 0.9px; padding: 10px 14px; text-align: left; border-bottom: 1px solid #0ea5e940; font-weight: 700; }
+.exp-table td { font-size: 13px; padding: 13px 14px; border-bottom: 1px solid var(--border2); color: var(--white2); }
+.exp-table tr:last-child td { border-bottom: none; }
+.exp-table tr:hover td { background: var(--gold-dim); }
+
+.tag { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+.tag.tl  { background: var(--green-dim); color: var(--green); border: 1px solid #0ea5e940; }
+.tag.tg  { background: var(--gold-dim);  color: var(--gold);  border: 1px solid var(--border); }
+.tag.tgr { background: var(--black3);    color: var(--white2); border: 1px solid var(--border2); }
+
+.report-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.report-card { background: var(--black2); border: 1px solid var(--border2); border-radius: 18px; padding: 28px; cursor: pointer; transition: all 0.3s; }
+.report-card:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 16px 40px #00000060; }
+.report-card .ri { font-size: 36px; margin-bottom: 14px; }
+.report-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--white); }
+.report-card p { font-size: 13px; color: var(--white2); line-height: 1.6; font-weight: 300; }
+.report-card.locked { opacity: 0.55; cursor: not-allowed; }
+.report-card.locked:hover { border-color: var(--border2); transform: none; box-shadow: none; }
+.pro-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .5px; background: var(--gold-dim); color: var(--gold); border: 1px solid var(--gold); padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; text-transform: uppercase; }
+
+.admin-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 22px; }
+.admin-kpi { background: var(--black2); border: 1px solid var(--border2); border-radius: 16px; padding: 22px; }
+.admin-kpi .ak-label { font-size: 11px; color: var(--white3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 9px; font-weight: 600; }
+.admin-kpi .ak-val { font-family: 'DM Sans', sans-serif; font-size: 34px; font-weight: 800; color: var(--gold); }
+.admin-kpi .ak-chg { font-size: 12px; color: var(--green); margin-top: 4px; }
+
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.dot.on  { background: var(--green); }
+.dot.off { background: var(--white3); }
+
+.loading-overlay { display: none; position: fixed; inset: 0; background: rgba(8,8,8,0.82); z-index: 900; align-items: center; justify-content: center; flex-direction: column; gap: 18px; }
+.loading-overlay.show { display: flex; }
+
+.trial-modal-wrap { display: none; position: fixed; inset: 0; z-index: 700; background: rgba(8,8,8,0.94); backdrop-filter: blur(14px); align-items: center; justify-content: center; padding: 24px; }
+.trial-modal-wrap.show { display: flex; }
+.trial-modal-box {
+  background: var(--black2); border: 1.5px solid var(--gold); border-radius: 26px;
+  padding: 52px 48px; max-width: 460px; width: 100%; text-align: center;
+  box-shadow: 0 0 0 1px var(--gold3), 0 0 80px #0ea5e918, 0 40px 80px #00000070;
+}
+.trial-modal-icon { font-size: 52px; line-height: 1; margin-bottom: 18px; }
+.trial-modal-title {
+  font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.trial-modal-sub { font-size: 14.5px; color: var(--white2); line-height: 1.65; margin-bottom: 28px; font-weight: 300; }
+.trial-features { list-style: none; margin-bottom: 28px; text-align: left; display: inline-block; width: 100%; }
+.trial-features li { font-size: 13.5px; color: var(--white2); padding: 7px 0; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border2); }
+.trial-features li:last-child { border-bottom: none; }
+.trial-features li .chk { color: var(--green); font-weight: 700; flex-shrink: 0; }
+.trial-trust { font-size: 11.5px; color: var(--white3); margin: 14px 0 18px; line-height: 1.7; }
+.trial-signout {
+  background: none; border: 1px solid var(--border2); color: var(--white3);
+  font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit;
+  padding: 9px 24px; border-radius: 9px; transition: border-color 0.2s, color 0.2s;
+}
+.trial-signout:hover { border-color: var(--gold3); color: var(--gold); }
+.spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-txt { font-size: 14px; color: var(--white2); font-weight: 300; }
+
+.toast {
+  position: fixed; bottom: 26px; right: 26px; z-index: 1000;
+  background: var(--black2); border: 1px solid #0ea5e940;
+  color: var(--green); padding: 13px 22px; border-radius: 11px;
+  font-size: 13.5px; font-weight: 500;
+  transform: translateY(90px); opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 8px 32px #00000060;
+}
+.toast.err { border-color: #e0555540; color: #e07070; }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+@media (max-width: 860px) {
+  .two-col { grid-template-columns: 1fr; }
+  .result-grid { grid-template-columns: 1fr; }
+  .sidebar { width: 200px; }
+  nav { padding: 0 16px; }
+}
+.mobile-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+  background: rgba(17,17,17,0.97); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 8px 4px max(8px, env(safe-area-inset-bottom));
+  justify-content: space-around; align-items: center;
+}
+.mobile-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 10px; border-radius: 10px; cursor: pointer;
+  transition: all 0.15s; color: var(--white3); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.3px; text-transform: uppercase; min-width: 48px; text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-nav-item .mni { font-size: 20px; line-height: 1; }
+.mobile-nav-item.active { color: var(--gold); }
+.mobile-nav-item:active { background: var(--gold-dim); transform: scale(0.93); }
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .mobile-nav { display: flex !important; }
+  .app-content { padding: 16px 14px 90px; }
+  .auth-box { padding: 28px 20px; }
+  nav { padding: 0 16px; height: 58px; }
+  .page { padding-top: 58px; }
+  .app-layout { height: calc(100vh - 58px); }
+  .nav-logo { font-size: 18px; }
+  .nav-btn { padding: 7px 14px; font-size: 12px; }
+  .hero { padding: 40px 20px; min-height: auto; }
+  .hero h1 { font-size: 34px; letter-spacing: -1px; }
+  .hero > p { font-size: 15px; margin-bottom: 28px; }
+  .hero-btns { flex-direction: column; align-items: stretch; margin-bottom: 32px; }
+  .hero-btns button { width: 100%; justify-content: center; }
+  .stats-row { gap: 20px; }
+  .stat-num { font-size: 26px; }
+  .section { padding: 44px 16px; }
+  .pricing-card { padding: 28px 20px; }
+  .plan-price { font-size: 44px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi-card { padding: 14px; }
+  .kpi-value { font-size: 22px; }
+  .kpi-card.kpi-main .kpi-value { font-size: 28px; }
+  .page-hdr { margin-bottom: 16px; }
+  .page-hdr h2 { font-size: 22px; }
+  .search-input { width: 100%; }
+  .exp-toolbar { flex-direction: column; align-items: stretch; }
+  .exp-toolbar button { width: 100%; justify-content: center; }
+  .scan-drop { padding: 36px 16px; }
+  .scan-drop .sd-icon { font-size: 36px; }
+  .scan-drop h3 { font-size: 17px; }
+  .scan-btn-row { flex-direction: column; align-items: stretch; }
+  .scan-btn-row button { width: 100%; justify-content: center; }
+  .toast { bottom: 90px; right: 16px; left: 16px; text-align: center; }
+  .auth-wrap { padding: 24px 16px; align-items: flex-start; }
+  .auth-title { font-size: 24px; }
+  .report-cards { grid-template-columns: 1fr; }
+  .billing-plans { grid-template-columns: 1fr; }
+  .billing-header h2 { font-size: 24px; }
+  .two-col { grid-template-columns: 1fr; }
+  .result-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="pwa-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;border:1px solid #0ea5e9;border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 24px rgba(0,0,0,0.5);max-width:340px;width:90%">
+  <span style="font-size:22px">📱</span>
+  <div style="flex:1">
+    <div style="color:#fff;font-size:13px;font-weight:600">Add to Home Screen</div>
+    <div style="color:#aaa;font-size:11px;margin-top:2px">Works on iPhone & Android like a real app</div>
+  </div>
+  <button onclick="installPWA()" style="background:#0ea5e9;color:#000;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">Install</button>
+  <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:none;border:none;color:#666;font-size:18px;cursor:pointer;padding:0 4px">×</button>
+</div>
+
+<nav>
+  <div class="nav-logo" onclick="showPage('landing')">Receipt<em>AI</em></div>
+  <div class="nav-links" id="nav-links">
+    <button class="nav-btn ghost" onclick="showPage('login')">Sign In</button>
+    <button class="nav-btn primary" onclick="showPage('signup')">Get Started</button>
+  </div>
+</nav>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-txt" id="loading-txt">AI is reading your receipt…</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- TRIAL MODAL -->
+<div class="trial-modal-wrap" id="trial-modal">
+  <div class="trial-modal-box">
+    <div class="trial-modal-icon">✦</div>
+    <div class="trial-modal-title">Start Your Free Trial</div>
+    <div class="trial-modal-sub">7 days completely free — then $7.99/month.<br>Enter payment details now, no charge for 7 days.</div>
+    <ul class="trial-features">
+      <li><span class="chk">✓</span>Unlimited AI receipt scanning</li>
+      <li><span class="chk">✓</span>Smart dashboard &amp; analytics</li>
+      <li><span class="chk">✓</span>Tax-ready reports &amp; CSV/Excel export</li>
+      <li><span class="chk">✓</span>Apple Pay, cards &amp; all PayPal methods</li>
+      <li><span class="chk">✓</span>Cancel anytime before 7 days — pay nothing</li>
+    </ul>
+    <div id="paypal-button-container" style="min-height:55px;margin-bottom:4px"></div>
+    <div class="trial-trust">Secured by PayPal &nbsp;·&nbsp; No charge for 7 days &nbsp;·&nbsp; Cancel anytime</div>
+    <button class="trial-signout" onclick="hideTrialModal();showPage('app');showSection(document.querySelector('[data-section=dashboard]'),'dashboard')">Go back</button>
+  </div>
+</div>
+
+<!-- LANDING -->
+<div class="page active" id="page-landing">
+  <section class="hero">
+    <div class="hero-glow-1"></div>
+    <div class="hero-glow-2"></div>
+    <div class="hero-badge"><span class="dot"></span>AI-Powered · Built for Business</div>
+    <h1>Stop Losing Money<br>to <span class="gold">Messy</span> <span class="grn">Receipts</span></h1>
+    <p style="font-size:17px;line-height:1.75;color:rgba(255,255,255,0.6);max-width:520px;margin:0 auto 32px;font-weight:300;letter-spacing:0.1px">Snap a photo. Let AI do the rest. Track every expense automatically, generate tax-ready reports, and never miss a deduction again.</p>
+    <div class="hero-btns">
+      <button class="btn-gold" onclick="showPage('signup')">Start Free — 7-Day Trial</button>
+
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">$0</div><div class="stat-label">To get started</div></div>
+      <div class="stat"><div class="stat-num" style="font-family:'Montserrat',sans-serif;font-size:26px;">Instant</div><div class="stat-label">Receipt scanning</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Private & secure</div></div>
+    </div>
+  </section>
+
+  <div class="features-bg">
+    <div class="section" style="padding-top:80px;padding-bottom:80px;">
+      <div class="section-eyebrow">Why ReceiptAI</div>
+      <div class="section-title">Everything your accountant<br>wishes you <span class="gold">already had</span></div>
+      <div class="section-sub">Built for anyone who wants to effortlessly track their expenses, scan receipts, and stay on top of their finances — all in one place.</div>
+      <div class="features-grid">
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-scan"></i></div><div class="feature-title">Instant AI Scanning</div><div class="feature-desc">Snap or upload any receipt. Our AI extracts vendor, date, amount, tax, and category in seconds — no manual entry ever.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-layout-dashboard"></i></div><div class="feature-title">Smart Dashboard</div><div class="feature-desc">See exactly where your money goes with real-time category breakdowns, monthly trends, and spending insights.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-file-invoice"></i></div><div class="feature-title">Tax-Ready Reports</div><div class="feature-desc">Export clean, organized reports by category — hand them straight to your accountant at year end.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-world"></i></div><div class="feature-title">Multi-Currency</div><div class="feature-desc">Works with any currency. Perfect for businesses that travel or deal with international suppliers.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-users"></i></div><div class="feature-title">Spending Insights</div><div class="feature-desc">Understand exactly where your money goes with smart spending patterns, category breakdowns, and monthly trends.</div></div>
+        <div class="feature-card"><div class="feature-icon"><i class="ti ti-shield-lock"></i></div><div class="feature-title">Secure & Private</div><div class="feature-desc">Your data is encrypted and never shared. You own your receipts and can export or delete at any time.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Pricing</div>
+    <div class="section-title">Simple, honest <span class="gold">pricing</span></div>
+    <div class="section-sub">Start free for 7 days. No credit card. Cancel anytime.</div>
+    <div class="toggle-row">
+      <span class="toggle-lbl on" id="lbl-monthly">Monthly</span>
+      <div class="toggle-track" id="billing-toggle" onclick="toggleBilling()"><div class="toggle-knob"></div></div>
+      <span class="toggle-lbl" id="lbl-yearly">Yearly</span>
+      <span class="save-badge" id="save-badge" style="display:none">Save 37%</span>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="plan-name">Free Trial</div>
+        <div class="plan-price"><sup>$</sup>0<sub>/mo</sub></div>
+        <div class="plan-note">7 days free — then $7.99/mo</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="chk">✓</span>Full app access for 7 days</li>
+          <li><span class="chk">✓</span>Unlimited AI receipt scanning</li>
+          <li><span class="chk">✓</span>Dashboard &amp; expense tracking</li>
+          <li><span class="chk">✓</span>No credit card required</li>
+          <li><span class="chk">✓</span>Cancel before 7 days — pay nothing</li>
+        </ul>
+        <button class="plan-btn outline-btn" onclick="showPage('signup')">Start Free Trial</button>
+      </div>
+      <div class="pricing-card popular">
+        <div class="popular-badge">✦ Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price" id="pro-price"><sup>$</sup>7.99<sub>/mo</sub></div>
+        <div class="plan-note" id="pro-note">Billed monthly · Cancel anytime</div>
+        <div class="save-banner" id="yearly-banner">🎉 You save $35.89 per year</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="chk gold">✦</span>Everything in Free Trial</li>
+          <li><span class="chk gold">✦</span>Unlimited receipts &amp; AI scanning</li>
+          <li><span class="chk gold">✦</span>Advanced dashboard &amp; analytics</li>
+          <li><span class="chk gold">✦</span>Tax report generator</li>
+          <li><span class="chk gold">✦</span>Excel &amp; CSV export</li>
+          <li><span class="chk gold">✦</span>Priority support &amp; all future features</li>
+        </ul>
+        <button class="plan-btn gold-btn" onclick="landingCheckout()">Start 7-Day Free Trial → (then $7.99/mo)</button>
+      </div>
+    </div>
+    <p class="pricing-trust">No credit card required to start &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; <span>7-day free trial included on Pro</span></p>
+  </div>
+
+  <div class="cta-strip">
+    <h2>Ready to take control of your <span style="color:var(--gold)">expenses?</span></h2>
+    <p>Join thousands of business owners who never miss a deduction.</p>
+    <button class="btn-gold" onclick="showPage('signup')">Get Started Free — No Card Required</button>
+  </div>
+
+  <footer>
+    <div class="footer-logo">ReceiptAI</div>
+    <p style="margin-top:8px">© 2026 ReceiptAI · Track every expense. Miss nothing.</p>
+    <p style="margin-top:14px">
+      <a onclick="showPage('privacy')" style="color:var(--gold);cursor:pointer;font-size:13px;font-weight:500;text-decoration:none">Privacy Policy</a>
+      <span style="color:var(--white3);margin:0 10px">·</span>
+      <a onclick="showPage('terms')" style="color:var(--gold);cursor:pointer;font-size:13px;font-weight:500;text-decoration:none">Terms of Service</a>
+    </p>
+  </footer>
+</div>
+
+<!-- PRIVACY -->
+<div class="page" id="page-privacy">
+  <div class="legal-wrap">
+    <button class="legal-back" onclick="showPage('landing')">← Back to ReceiptAI</button>
+    <div class="legal-logo">ReceiptAI</div>
+    <div class="legal-title">Privacy Policy</div>
+    <div class="legal-date">Last updated: May 2026</div>
+    <div class="legal-section"><h2>1. Information We Collect</h2><p>When you use ReceiptAI, we collect: account info (name, email, password), expense records, receipt images for AI analysis, your country, and billing info handled by PayPal.</p></div>
+    <div class="legal-section"><h2>2. How We Use Your Information</h2><p>We use your data solely to provide ReceiptAI: authenticate you, store expenses, process receipts through AI, manage subscriptions, and send account emails. We do <strong>not</strong> use your data for advertising.</p></div>
+    <div class="legal-section"><h2>3. Third-Party Services</h2><ul><li><strong>Supabase</strong> — database, encrypted at rest and in transit.</li><li><strong>PayPal</strong> — all payment processing. We never store your payment info.</li><li><strong>Anthropic (Claude AI)</strong> — receipt images sent for extraction, not retained beyond the API request.</li></ul></div>
+    <div class="legal-section"><h2>4. Data Sharing &amp; Sale</h2><p>We <strong>never sell, rent, or trade your personal data</strong>. We only share with service providers listed above.</p></div>
+    <div class="legal-section"><h2>5. Data Retention</h2><p>Data retained while your account is active. Deletion requests processed within 30 days.</p></div>
+    <div class="legal-section"><h2>6. Contact</h2><p>Questions? Email <a href="mailto:support@receiptai.app">support@receiptai.app</a>.</p></div>
+  </div>
+</div>
+
+<!-- TERMS -->
+<div class="page" id="page-terms">
+  <div class="legal-wrap">
+    <button class="legal-back" onclick="showPage('landing')">← Back to ReceiptAI</button>
+    <div class="legal-logo">ReceiptAI</div>
+    <div class="legal-title">Terms of Service</div>
+    <div class="legal-date">Last updated: May 2026</div>
+    <div class="legal-section"><h2>1. Acceptance</h2><p>By using ReceiptAI, you agree to these Terms.</p></div>
+    <div class="legal-section"><h2>2. Subscription &amp; Pricing</h2><ul><li><strong>Pro Monthly</strong> — $7.99/month</li><li><strong>Pro Yearly</strong> — $59.99/year (save ~37%)</li></ul><p>All prices USD. 7-day free trial on Pro.</p></div>
+    <div class="legal-section"><h2>3. Cancellation</h2><p>Cancel anytime. Access continues until end of billing period. No refunds for partial periods.</p></div>
+    <div class="legal-section"><h2>4. Your Data</h2><p>You own your data. Export or delete anytime.</p></div>
+    <div class="legal-section"><h2>5. Contact</h2><p><a href="mailto:support@receiptai.app">support@receiptai.app</a></p></div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="page" id="page-login">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-icon"><i class="ti ti-lock" style="font-size:28px;color:#0ea5e9"></i></div>
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to your ReceiptAI account to continue.</div>
+      <form id="login-form" onsubmit="submitLogin(event)" novalidate>
+        <div class="auth-field">
+          <label for="li-email">Email Address</label>
+          <div class="input-wrap"><input id="li-email" type="email" placeholder="you@company.com" autocomplete="email"/></div>
+          <div class="field-error" id="li-email-err">Please enter a valid email address.</div>
+        </div>
+        <div class="auth-field">
+          <label for="li-pass">Password</label>
+          <div class="input-wrap">
+            <input id="li-pass" type="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:46px"/>
+            <button type="button" class="eye-btn" onclick="toggleEye('li-pass','li-eye')" id="li-eye">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="field-error" id="li-pass-err">Password is required.</div>
+        </div>
+        <button type="submit" class="auth-submit">Sign In</button>
+      </form>
+      <div class="auth-divider"><span>or</span></div>
+      <button class="google-btn" onclick="signInWithGoogle()">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <div class="auth-footer">Don't have an account? <a onclick="showPage('signup')">Sign up free</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNUP -->
+<div class="page" id="page-signup">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-icon"><i class="ti ti-sparkles" style="font-size:28px;color:#0ea5e9"></i></div>
+      <div class="auth-title">Create account</div>
+      <div class="auth-sub">7 days free — no credit card required. Cancel anytime.</div>
+      <form id="signup-form" onsubmit="submitSignup(event)" novalidate>
+        <div class="auth-field">
+          <label for="su-name">Full Name</label>
+          <div class="input-wrap"><input id="su-name" type="text" placeholder="John Smith" autocomplete="name"/></div>
+          <div class="field-error" id="su-name-err">Please enter your full name.</div>
+        </div>
+        <div class="auth-field">
+          <label for="su-email">Email Address</label>
+          <div class="input-wrap"><input id="su-email" type="email" placeholder="you@company.com" autocomplete="email"/></div>
+          <div class="field-error" id="su-email-err">Please enter a valid email address.</div>
+        </div>
+        <div class="auth-field">
+          <label for="su-pass">Password</label>
+          <div class="input-wrap">
+            <input id="su-pass" type="password" placeholder="Create a strong password" autocomplete="new-password" style="padding-right:46px" oninput="checkStrength(this.value)"/>
+            <button type="button" class="eye-btn" onclick="toggleEye('su-pass','su-eye')" id="su-eye">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="field-error" id="su-pass-err">Password must be at least 8 characters.</div>
+          <div class="pw-strength" id="pw-strength">
+            <div class="pw-bars"><div class="pw-bar" id="pb1"></div><div class="pw-bar" id="pb2"></div><div class="pw-bar" id="pb3"></div><div class="pw-bar" id="pb4"></div></div>
+            <div class="pw-label" id="pw-label">Enter a password</div>
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="su-confirm">Confirm Password</label>
+          <div class="input-wrap">
+            <input id="su-confirm" type="password" placeholder="Repeat your password" autocomplete="new-password" style="padding-right:46px"/>
+            <button type="button" class="eye-btn" onclick="toggleEye('su-confirm','su-eye2')" id="su-eye2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="field-error" id="su-confirm-err">Passwords do not match.</div>
+        </div>
+        <div class="auth-field">
+          <label for="su-country">Country</label>
+          <div class="input-wrap">
+            <select id="su-country" style="width:100%;background:var(--black2);color:var(--white);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;outline:none;appearance:none;cursor:pointer">
+              <option value="">Select your country…</option>
+              <option value="AE">United Arab Emirates</option><option value="AF">Afghanistan</option><option value="AL">Albania</option><option value="AR">Argentina</option><option value="AU">Australia</option><option value="AT">Austria</option><option value="BH">Bahrain</option><option value="BD">Bangladesh</option><option value="BE">Belgium</option><option value="BR">Brazil</option><option value="CA">Canada</option><option value="CN">China</option><option value="EG">Egypt</option><option value="FR">France</option><option value="DE">Germany</option><option value="GH">Ghana</option><option value="GR">Greece</option><option value="HK">Hong Kong</option><option value="IN">India</option><option value="ID">Indonesia</option><option value="IE">Ireland</option><option value="IL">Israel</option><option value="IT">Italy</option><option value="JP">Japan</option><option value="JO">Jordan</option><option value="KE">Kenya</option><option value="KW">Kuwait</option><option value="LB">Lebanon</option><option value="MY">Malaysia</option><option value="MX">Mexico</option><option value="MA">Morocco</option><option value="NL">Netherlands</option><option value="NZ">New Zealand</option><option value="NG">Nigeria</option><option value="NO">Norway</option><option value="OM">Oman</option><option value="PK">Pakistan</option><option value="PH">Philippines</option><option value="PL">Poland</option><option value="PT">Portugal</option><option value="QA">Qatar</option><option value="RO">Romania</option><option value="RU">Russia</option><option value="SA">Saudi Arabia</option><option value="SG">Singapore</option><option value="ZA">South Africa</option><option value="KR">South Korea</option><option value="ES">Spain</option><option value="SE">Sweden</option><option value="CH">Switzerland</option><option value="TW">Taiwan</option><option value="TH">Thailand</option><option value="TR">Turkey</option><option value="UA">Ukraine</option><option value="GB">United Kingdom</option><option value="US">United States</option><option value="VN">Vietnam</option>
+            </select>
+          </div>
+          <div class="field-error" id="su-country-err">Please select your country.</div>
+        </div>
+        <button type="submit" class="auth-submit">Start Free Trial →</button>
+      </form>
+      <div class="auth-divider"><span>or</span></div>
+      <button class="google-btn" onclick="signInWithGoogle()">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Sign up with Google
+      </button>
+      <div class="auth-footer">Already have an account? <a onclick="showPage('login')">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="page" id="page-app">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name" id="sidebar-username" style="font-size:16px;font-family:Montserrat,sans-serif;">My Account</div>
+        <div class="sidebar-brand-tag">Free Plan</div>
+      </div>
+      <div class="sidebar-section-label">Main</div>
+      <div class="sidebar-item active" data-section="dashboard" onclick="showSection(this,'dashboard')"><span class="si-icon"><i class="ti ti-layout-dashboard"></i></span> Dashboard</div>
+      <div class="sidebar-item" data-section="scan" onclick="showSection(this,'scan')"><span class="si-icon"><i class="ti ti-camera"></i></span> Scan Receipt</div>
+      <div class="sidebar-item" data-section="expenses" onclick="showSection(this,'expenses')"><span class="si-icon"><i class="ti ti-files"></i></span> All Expenses</div>
+      <div class="sidebar-item" data-section="reports" onclick="showSection(this,'reports')"><span class="si-icon"><i class="ti ti-chart-bar"></i></span> Reports</div>
+      <div class="sidebar-section-label">Settings</div>
+      <div class="sidebar-item" data-section="billing" onclick="showSection(this,'billing')"><span class="si-icon"><i class="ti ti-crown"></i></span> My Plan</div>
+      <div class="sidebar-item" id="sidebar-admin-item" data-section="admin" onclick="showSection(this,'admin');loadAdminStats()" style="display:none"><span class="si-icon"><i class="ti ti-settings"></i></span> Admin</div>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-item" onclick="handleSignOut()"><span class="si-icon"><i class="ti ti-logout"></i></span> Sign Out</div>
+      </div>
+    </aside>
+
+    <main class="app-content">
+
+      <!-- DASHBOARD -->
+      <div class="app-section active" id="section-dashboard">
+        <div class="page-hdr"><h2>Dashboard</h2><p id="dashboard-period">Scan your first receipt to get started</p></div>
+        <div class="kpi-grid">
+          <div class="kpi-card g"><div class="kpi-label">Receipts Logged</div><div class="kpi-value gold-c" id="kpi-count">0</div><div class="kpi-trend" id="kpi-count-sub">This month</div></div>
+          <div class="kpi-card gr kpi-main"><div class="kpi-label">Total Spent</div><div class="kpi-value green-c" id="kpi-total">$0.00</div><div class="kpi-trend" id="kpi-total-sub">No expenses yet</div></div>
+          <div class="kpi-card g" id="kpi-tax-card"><div class="kpi-label">Tax Deductible</div><div class="kpi-value gold-c" id="kpi-tax">$0.00</div><div class="kpi-trend" id="kpi-tax-sub">0% of total</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card"><div class="card-hdr">Spending by Category</div><div id="chart-bars"><div style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px"><div style="font-size:28px;margin-bottom:10px">📊</div>No data yet — scan a receipt to see your breakdown</div></div></div>
+          <div class="card"><div class="card-hdr">Recent Receipts</div><div class="rcpt-list" id="recent-list"><div id="recent-empty" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px"><div style="font-size:28px;margin-bottom:10px">🧾</div>No receipts yet — scan your first receipt!</div></div></div>
+        </div>
+      </div>
+
+      <!-- SCAN -->
+      <div class="app-section" id="section-scan">
+        <div class="page-hdr"><h2>Scan Receipt</h2><p>Upload or drag a receipt — AI extracts everything instantly</p></div>
+        <div class="scan-drop" id="scan-drop" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="handleDrop(event)">
+          <div class="sd-icon">📸</div>
+          <h3>Drop your receipt here</h3>
+          <p>Supports JPG, PNG — any receipt from any store worldwide</p>
+          <div class="scan-btn-row">
+            <button class="btn-gold" style="border:none" onclick="event.stopPropagation();document.getElementById('file-input').click()">Upload Receipt</button>
+            <button class="btn-camera" onclick="event.stopPropagation();document.getElementById('camera-input').click()">📷 Take Photo</button>
+          </div>
+        </div>
+        <input type="file" id="file-input" accept="image/*" onchange="handleFile(this)"/>
+        <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleFile(this)"/>
+        <div id="preview-area" style="display:none">
+          <img id="preview-img" class="preview-img" src="" alt="Receipt preview"/>
+          <button onclick="document.getElementById('scan-drop').style.display='block';document.getElementById('preview-area').style.display='none';document.getElementById('file-input').value='';" style="width:100%;padding:12px;font-size:14px;font-weight:600;border:1.5px solid rgba(201,168,76,0.5);border-radius:11px;cursor:pointer;background:rgba(201,168,76,0.08);color:#0ea5e9;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.15)'" onmouseout="this.style.background='rgba(201,168,76,0.08)'"><i class="ti ti-photo-edit" style="font-size:16px"></i> Change Image</button>
+          <button class="btn-gold" onclick="if(userPlan!=='pro'){showTrialModal();return;} analyzeReceipt()" style="width:100%;padding:14px;font-size:15px;border:none;border-radius:11px;cursor:pointer;justify-content:center"><i class="ti ti-wand" style="margin-right:6px"></i> Analyze with AI</button>
+        </div>
+      </div>
+
+      <!-- AI RESULT -->
+      <div class="app-section" id="section-result">
+        <div class="page-hdr"><h2>AI Result</h2><p>Review and edit fields before saving</p></div>
+        <div class="card">
+          <div class="ai-badge">✦ Extracted by AI</div>
+          <div class="rfield vendor-hero" style="margin-bottom:20px"><label>Vendor / Store</label><input id="r-vendor" placeholder="Store or restaurant name"/></div>
+          <div class="result-grid">
+            <div class="rfield"><label>Date</label><input id="r-date" type="date"/></div>
+            <div class="rfield"><label>Total Amount</label><input id="r-amount" placeholder="$0.00"/></div>
+            <div class="rfield"><label>Tax</label><input id="r-tax" placeholder="$0.00"/></div>
+            <div class="rfield"><label>Payment Method</label><input id="r-payment" placeholder="e.g. Visa ••••4211"/></div>
+            <div class="rfield" style="grid-column:1/-1"><label>Category</label>
+              <select id="r-category">
+                <option>Food &amp; Drink</option><option>Travel</option><option>Office Supplies</option><option>Software &amp; Subscriptions</option><option>Marketing</option><option>Utilities</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="rfield" style="margin-bottom:22px;margin-top:14px"><label>Notes</label><input id="r-notes" placeholder="Optional notes…"/></div>
+          <button class="save-btn" onclick="saveExpense()">✓ Save Expense</button>
+        </div>
+      </div>
+
+      <!-- ALL EXPENSES -->
+      <div class="app-section" id="section-expenses">
+        <div class="page-hdr"><h2>All Expenses</h2><p>Your full expense history</p></div>
+        <div class="exp-toolbar">
+          <input class="search-input" type="text" placeholder="🔍 Search expenses…" oninput="filterExpenses(this.value)"/>
+          <button class="btn-gold" onclick="exportCSV()" style="padding:10px 22px;font-size:13.5px;border:none;border-radius:10px;cursor:pointer">⬇ Export CSV</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="exp-table">
+            <thead><tr><th>Vendor &amp; Category</th><th>Date</th><th>Amount</th></tr></thead>
+            <tbody id="expenses-tbody">
+              <tr id="expenses-empty"><td colspan="3" style="text-align:center;padding:40px 0;color:var(--white3);font-size:13px"><div style="font-size:28px;margin-bottom:10px">🧾</div>No receipts yet — scan your first receipt!</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="app-section" id="section-reports">
+        <div class="page-hdr"><h2>Tax Reports</h2><p>Generate reports ready for your accountant</p></div>
+        <div class="report-cards">
+          <div class="report-card locked" id="rc-monthly" onclick="requirePro()"><div class="ri">📅</div><h3>Monthly Report <span class="pro-badge">🔒 Pro</span></h3><p>All expenses for a selected month, organized by category with totals and tax breakdowns.</p></div>
+          <div class="report-card locked" id="rc-annual" onclick="requirePro()"><div class="ri">📆</div><h3>Annual Tax Report <span class="pro-badge">🔒 Pro</span></h3><p>Full year breakdown — perfect to hand to your accountant at tax time.</p></div>
+          <div class="report-card locked" id="rc-category" onclick="requirePro()"><div class="ri">🗂</div><h3>By Category <span class="pro-badge">🔒 Pro</span></h3><p>Deep dive into any spending category across any time period you choose.</p></div>
+          <div class="report-card locked" id="rc-csv" onclick="exportCSV()"><div class="ri">⬇</div><h3>Export CSV <span class="pro-badge">🔒 Pro</span></h3><p>Download a spreadsheet-ready CSV of all your expenses.</p></div>
+          <div class="report-card locked" id="excel-card" onclick="exportExcel()"><div class="ri">📊</div><h3>Export to Excel <span class="pro-badge">🔒 Pro</span></h3><p>Full .xlsx file with Category Summary, Monthly Breakdown, and Transaction History.</p></div>
+        </div>
+      </div>
+
+      <!-- ADMIN -->
+      <div class="app-section" id="section-admin">
+        <div class="page-hdr">
+          <h2>Admin Dashboard</h2>
+          <p>Only visible to you — real-time revenue &amp; users</p>
+        </div>
+
+        <!-- REVENUE BANNER -->
+        <div style="background:linear-gradient(135deg,#1a1200 0%,#0f0a00 100%);border:1.5px solid var(--gold3);border-radius:18px;padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div>
+            <div style="font-size:13px;color:var(--white3);font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">Monthly Recurring Revenue</div>
+            <div style="font-family:'Playfair Display',serif;font-size:48px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1" id="admin-revenue">—</div>
+            <div style="font-size:13px;color:var(--white3);margin-top:6px">ARR: <span id="admin-arr" style="color:var(--gold2)">—</span></div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div style="background:var(--black3);border:1px solid var(--border);border-radius:12px;padding:16px 22px;text-align:center;min-width:110px">
+              <div style="font-size:28px;font-weight:700;color:var(--gold)" id="admin-pro-users">—</div>
+              <div style="font-size:12px;color:var(--white3);margin-top:4px">Pro Subscribers</div>
+            </div>
+            <div style="background:var(--black3);border:1px solid var(--border);border-radius:12px;padding:16px 22px;text-align:center;min-width:110px">
+              <div style="font-size:28px;font-weight:700;color:var(--green)" id="admin-total-users">—</div>
+              <div style="font-size:12px;color:var(--white3);margin-top:4px">Total Users</div>
+            </div>
+            <div style="background:var(--black3);border:1px solid var(--border);border-radius:12px;padding:16px 22px;text-align:center;min-width:110px">
+              <div style="font-size:28px;font-weight:700;color:var(--white)" id="admin-conversion">—</div>
+              <div style="font-size:12px;color:var(--white3);margin-top:4px">Conversion Rate</div>
+            </div>
+            <div style="background:var(--black3);border:1px solid var(--border);border-radius:12px;padding:16px 22px;text-align:center;min-width:110px">
+              <div style="font-size:28px;font-weight:700;color:var(--white2)" id="admin-receipts">—</div>
+              <div style="font-size:12px;color:var(--white3);margin-top:4px">Receipts Scanned</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FREE vs PRO breakdown -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+          <div class="card" style="padding:22px 26px">
+            <div style="font-size:12px;color:var(--white3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Free Trial Users</div>
+            <div style="font-size:36px;font-weight:700;color:var(--green)" id="admin-free-users">—</div>
+            <div style="font-size:13px;color:var(--white3);margin-top:6px">Conversion opportunity 🎯</div>
+          </div>
+          <div class="card" style="padding:22px 26px">
+            <div style="font-size:12px;color:var(--white3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Total Expenses Logged</div>
+            <div style="font-size:36px;font-weight:700;color:var(--white)" id="admin-total-expenses">—</div>
+            <div style="font-size:13px;color:var(--white3);margin-top:6px">Across all users</div>
+          </div>
+        </div>
+
+        <!-- USERS TABLE -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:18px 24px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:15px;font-weight:600;color:var(--white)">All Users</div>
+            <button onclick="loadAdminStats()" style="background:var(--black3);border:1px solid var(--border);color:var(--white2);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">↻ Refresh</button>
+          </div>
+          <table class="exp-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Plan</th><th>Joined</th></tr></thead>
+            <tbody id="admin-users-tbody"><tr><td colspan="4" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BILLING -->
+      <div class="app-section" id="section-billing">
+        <div class="page-hdr"><h2>My Plan</h2><p>Manage your subscription</p></div>
+
+        <!-- PRO STATUS CARD -->
+        <div id="billing-pro-card" style="display:none;max-width:520px;margin:0 auto">
+          <div class="card" style="text-align:center;padding:48px 44px;border-color:var(--gold);background:linear-gradient(160deg,#161208 0%,var(--black2) 100%);box-shadow:0 0 0 1px var(--gold3),0 0 50px #0ea5e918">
+            <div style="font-size:52px;margin-bottom:14px;line-height:1">✦</div>
+            <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">You're on Pro!</div>
+            <div style="font-size:14.5px;color:var(--white2);margin-bottom:32px;font-weight:300">All Pro features are unlocked and active on your account.</div>
+            <div style="background:var(--black3);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:28px;text-align:left">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2)"><span style="font-size:13px;color:var(--white3)">Plan</span><span style="font-size:13.5px;font-weight:700;color:var(--gold)">Pro ✦</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2)"><span style="font-size:13px;color:var(--white3)">Status</span><span style="font-size:13.5px;font-weight:700;color:var(--green)">● Active</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0"><span style="font-size:13px;color:var(--white3)">Features</span><span style="font-size:13.5px;font-weight:600;color:var(--white)">All unlocked</span></div>
+            </div>
+            <!-- PAYPAL: cancel subscription button -->
+            <button class="btn-gold" onclick="openPortal()" style="width:100%;justify-content:center;border:none;padding:15px;font-size:15px">
+              Cancel Subscription
+            </button>
+          </div>
+        </div>
+
+        <!-- UPGRADE PLANS -->
+        <div id="billing-upgrade">
+          <div class="billing-header">
+            <h2>Choose your <span style="background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">plan</span></h2>
+            <p>7-day free trial on Pro · Cancel anytime · No hidden fees</p>
+            <div class="toggle-row" style="justify-content:center;margin-top:20px">
+              <span class="toggle-lbl on" id="b-lbl-monthly">Monthly</span>
+              <div class="toggle-track" id="b-billing-toggle" onclick="toggleBillingPage()"><div class="toggle-knob"></div></div>
+              <span class="toggle-lbl" id="b-lbl-yearly">Yearly</span>
+              <span class="save-badge" id="b-save-badge" style="display:none">Save 37%</span>
+            </div>
+          </div>
+          <div class="billing-plans">
+            <div class="pricing-card" style="background:linear-gradient(160deg,#0a1a0a 0%,#0f1f0f 100%);border:1.5px solid var(--green);box-shadow:0 0 0 1px #0ea5e940,0 0 40px #2EAD2218,0 24px 60px #2EAD2210">
+              <div class="plan-name" style="color:var(--green)">Free Trial</div>
+              <div class="plan-price" style="color:var(--green)"><sup style="font-size:24px">$</sup>0<sub style="font-size:16px;color:var(--white2)">/mo</sub></div>
+              <div class="plan-note">7 days free — then $7.99/mo</div>
+              <div class="plan-divider"></div>
+              <ul class="plan-features">
+                <li><span class="chk">✓</span>Full access for 7 days</li>
+                <li><span class="chk">✓</span>Unlimited receipts &amp; AI scanning</li>
+                <li><span class="chk">✓</span>Dashboard, reports &amp; CSV export</li>
+                <li><span class="chk">✓</span>No credit card to start</li>
+              </ul>
+              <button class="plan-btn" onclick="startCheckoutFromBilling()" style="background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-weight:700">Start 7-Day Free Trial →</button>
+            </div>
+            <div class="pricing-card popular">
+              <div class="popular-badge">Most Popular</div>
+              <div class="plan-name">Pro</div>
+              <div class="plan-price" id="b-pro-price"><sup>$</sup>7.99<sub>/mo</sub></div>
+              <div class="plan-note" id="b-pro-note">Billed monthly · Cancel anytime</div>
+              <div class="plan-divider"></div>
+              <ul class="plan-features">
+                <li><span class="chk gold">✦</span>Unlimited receipts</li>
+                <li><span class="chk gold">✦</span>Advanced dashboard &amp; analytics</li>
+                <li><span class="chk gold">✦</span>Tax report generator</li>
+                <li><span class="chk gold">✦</span>Multi-currency support</li>
+                <li><span class="chk gold">✦</span>Priority support</li>
+                <li><span class="chk gold">✦</span>All future features included</li>
+              </ul>
+              <button class="plan-btn gold-btn" onclick="startCheckoutFromBilling()">Upgrade to Pro → (then $7.99/mo)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <
+</div><!-- /app -->
+
+<script>
+const RAIL        = 'https://receiptai-production.up.railway.app';
+const ADMIN_EMAIL = 'ricardohatoum4@gmail.com';
+const NO_TAX_COUNTRIES = ['AE','QA','KW','BH','SA','OM','KY','BM','MC','VU','BN'];
+
+let userPlan     = 'free';
+let userCountry  = '';
+let sessionToken = null;
+
+function applyTaxVisibility() {
+  const taxCard = document.getElementById('kpi-tax-card');
+  if (taxCard) taxCard.style.display = NO_TAX_COUNTRIES.includes(userCountry) ? 'none' : '';
+}
+
+const SUPABASE_URL     = (window.SUPABASE_URL     || 'https://dnoonrvuetsvbrxaapbr.supabase.co');
+const SUPABASE_ANON_KEY = (window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRub29ucnZ1ZXRzdmJyeGFhcGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxOTQ3MTQsImV4cCI6MjA5NDc3MDcxNH0.mzTIz12VnJwYkAhuYdYIQO02E3MNFnvk96uSR778oMY');
+
+let _sb = null;
+function sb() {
+  if (_sb) return _sb;
+  if (window.supabase) {
+    _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: 'receiptai-auth' }
+    });
+  }
+  return _sb;
+}
+
+let currentUser = null;
+
+function showPage(page) {
+  if (page === 'landing' || page === 'login') { currentUser = null; sessionToken = null; const _sb = sb(); if (_sb) _sb.auth.signOut(); }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  window.scrollTo(0, 0);
+  const nav = document.getElementById('nav-links');
+  if (page === 'app') {
+    const isAdmin = currentUser?.email === ADMIN_EMAIL;
+    nav.innerHTML = isAdmin ? `<button class="nav-btn ghost" onclick="showSection(document.querySelector('[data-section=admin]'),'admin');loadAdminStats()"> Admin</button>` : '';
+  } else {
+    nav.innerHTML = `<button class="nav-btn ghost" onclick="showPage('login')">Sign In</button><button class="nav-btn primary" onclick="showPage('signup')">Get Started</button>`;
+  }
+}
+
+function showApp() { showPage('app'); }
+
+function applyAdminVisibility() {
+  const isAdmin = currentUser?.email === ADMIN_EMAIL;
+  const sidebarItem = document.getElementById('sidebar-admin-item');
+  if (sidebarItem) sidebarItem.style.display = isAdmin ? 'flex' : 'none';
+}
+
+async function handleSignOut() {
+  const client = sb();
+  if (client) await client.auth.signOut();
+  currentUser = null; sessionToken = null; expenses = [];
+  setUserPlan('free');
+  const tbody = document.getElementById('expenses-tbody');
+  if (tbody) tbody.innerHTML = `<tr id="expenses-empty"><td colspan="3" style="text-align:center;padding:40px 0;color:var(--white3);font-size:13px"><div style="font-size:28px;margin-bottom:10px">🧾</div>No receipts yet!</td></tr>`;
+  const rl = document.getElementById('recent-list');
+  if (rl) rl.innerHTML = `<div id="recent-empty" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px"><div style="font-size:28px;margin-bottom:10px">🧾</div>No receipts yet!</div>`;
+  updateDashboardKPIs();
+  showPage('landing');
+}
+
+function showSection(el, section) {
+  document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + section).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+let isYearly = false;
+
+function applyBillingState() {
+  const t = document.getElementById('billing-toggle');
+  if (t) t.classList.toggle('on', isYearly);
+  const lm = document.getElementById('lbl-monthly'); if (lm) lm.classList.toggle('on', !isYearly);
+  const ly = document.getElementById('lbl-yearly');  if (ly) ly.classList.toggle('on', isYearly);
+  const sb2 = document.getElementById('save-badge');  if (sb2) sb2.style.display = isYearly ? 'inline-block' : 'none';
+  const pp = document.getElementById('pro-price');
+  const pn = document.getElementById('pro-note');
+  const bt  = document.getElementById('b-billing-toggle');
+  if (bt) bt.classList.toggle('on', isYearly);
+  const blm = document.getElementById('b-lbl-monthly'); if (blm) blm.classList.toggle('on', !isYearly);
+  const bly = document.getElementById('b-lbl-yearly');  if (bly) bly.classList.toggle('on', isYearly);
+  const bsb = document.getElementById('b-save-badge');  if (bsb) bsb.style.display = isYearly ? 'inline-block' : 'none';
+  const bpp = document.getElementById('b-pro-price');
+  const bpn = document.getElementById('b-pro-note');
+  const yb  = document.getElementById('yearly-banner');
+  if (yb) yb.style.display = isYearly ? 'block' : 'none';
+  if (isYearly) {
+    if (pp)  pp.innerHTML  = '<sup>$</sup>4.99<sub>/mo</sub>';
+    if (pn)  pn.textContent = 'Billed $59.99/year · Save $35.89';
+    if (bpp) bpp.innerHTML  = '<sup>$</sup>4.99<sub>/mo</sub>';
+    if (bpn) bpn.textContent = 'Billed $59.99/year · Save $35.89';
+  } else {
+    if (pp)  pp.innerHTML  = '<sup>$</sup>7.99<sub>/mo</sub>';
+    if (pn)  pn.textContent = 'Billed monthly · Cancel anytime';
+    if (bpp) bpp.innerHTML  = '<sup>$</sup>7.99<sub>/mo</sub>';
+    if (bpn) bpn.textContent = 'Billed monthly · Cancel anytime';
+  }
+}
+
+function toggleBilling()     { isYearly = !isYearly; applyBillingState(); }
+function toggleBillingPage() { isYearly = !isYearly; applyBillingState(); }
+function landingCheckout() {
+  if (currentUser && sessionToken) {
+    startCheckout();
+  } else {
+    showPage('signup');
+    showToast('Create a free account to start your 7-day trial.');
+  }
+}
+
+async function startCheckoutFromBilling() {
+  // Re-fetch session fresh before redirecting
+  const client = sb();
+  if (client) {
+    const { data } = await client.auth.getSession();
+    currentUser = data?.session?.user || null;
+    sessionToken = data?.session?.access_token || null;
+  }
+  await startCheckout();
+}
+
+async function startCheckout() {
+  if (!currentUser || !sessionToken) {
+    localStorage.setItem('pendingPlan', isYearly ? 'yearly' : 'monthly');
+    showPage('login');
+    showToast('Please sign in to continue to checkout.');
+    return;
+  }
+  showLoading('Redirecting to PayPal checkout\u2026');
+  // Hide loading if user hits back from PayPal
+  window.addEventListener('pageshow', () => hideLoading(), { once: true });
+  document.addEventListener('visibilitychange', function _vis() {
+    if (document.visibilityState === 'visible') { hideLoading(); document.removeEventListener('visibilitychange', _vis); }
+  });
+  try {
+    const res = await fetch(`${RAIL}/api/create-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+      body: JSON.stringify({ plan: isYearly ? 'yearly' : 'monthly', email: currentUser.email }),
+    });
+    const json = await res.json();
+    if (json.url) {
+      window.location.href = json.url;
+    } else {
+      throw new Error(json.error || 'Could not start checkout.');
+    }
+  } catch (err) {
+    hideLoading();
+    showToast(err.message, true);
+  }
+}
+
+async function openPortal() {
+  if (!sessionToken) {
+    const client = sb();
+    if (client) {
+      const { data } = await client.auth.getSession();
+      currentUser = data?.session?.user || null;
+      sessionToken = data?.session?.access_token || null;
+    }
+  }
+  if (!sessionToken) { showToast('Please sign in to manage your subscription.', true); return; }
+
+
+  showLoading('Loading subscription\u2026');
+  let subscriptionId;
+  try {
+    const sr   = await fetch(`${RAIL}/api/subscription-status`, { headers: { 'Authorization': `Bearer ${sessionToken}` } });
+    const sd   = await sr.json();
+    subscriptionId = sd.subscriptionId;
+  } catch (e) { hideLoading(); showToast('Could not load subscription details.', true); return; }
+  hideLoading();
+
+  if (!subscriptionId) { showToast('No active subscription found. Please contact support.', true); return; }
+  const confirmed = confirm('Are you sure you want to cancel your Pro subscription? You will keep access until the end of your billing period.');
+  if (!confirmed) return;
+  showLoading('Cancelling subscription\u2026');
+  try {
+    const res = await fetch(`${RAIL}/api/cancel-subscription`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+      body: JSON.stringify({ subscriptionId }),
+    });
+    const json = await res.json();
+    if (json.success) {
+      setUserPlan('free');
+      hideLoading();
+      showToast('Subscription cancelled. You keep Pro access until end of billing period.');
+    } else {
+      throw new Error(json.error || 'Could not cancel subscription.');
+    }
+  } catch (err) {
+    hideLoading();
+    showToast(err.message, true);
+  }
+}
+
+const EYE_OPEN   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const EYE_CLOSED = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toggleEye(inputId, btnId) {
+  const input = document.getElementById(inputId);
+  const btn   = document.getElementById(btnId);
+  const hide  = input.type === 'text';
+  input.type  = hide ? 'password' : 'text';
+  btn.innerHTML = hide ? EYE_OPEN : EYE_CLOSED;
+}
+
+function setErr(inputId, errId, show) {
+  const input = document.getElementById(inputId);
+  const err   = document.getElementById(errId);
+  input.classList.toggle('error', show);
+  input.classList.toggle('valid', !show && input.value.trim() !== '');
+  err.classList.toggle('show', show);
+  return !show;
+}
+function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+async function submitLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('li-email').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  let ok = true;
+  ok = setErr('li-email','li-email-err',!isEmail(email)) && ok;
+  ok = setErr('li-pass','li-pass-err',!pass) && ok;
+  if (!ok) return;
+  showLoading('Signing in\u2026');
+  try {
+    const res  = await fetch(`${RAIL}/api/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password:pass}) });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Sign in failed.');
+    currentUser  = json.user;
+    sessionToken = json.session?.access_token || null;
+    expenses = []; setUserPlan('free');
+    const _uname = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || currentUser?.email?.split('@')[0] || 'My Account';
+    const _uel = document.getElementById('sidebar-username');
+    if(_uel) _uel.textContent = 'Welcome, ' + _uname;
+    const tbody=document.getElementById('expenses-tbody'); if(tbody) tbody.innerHTML='';
+    const rl=document.getElementById('recent-list'); if(rl) rl.innerHTML='';
+    const client = sb();
+    if (client && json.session) await client.auth.setSession(json.session);
+    // Re-fetch session to ensure it is fully persisted
+    if (client) {
+      const { data: d2 } = await client.auth.getSession();
+      currentUser  = d2?.session?.user  || currentUser;
+      sessionToken = d2?.session?.access_token || sessionToken;
+    }
+    hideLoading(); applyAdminVisibility();
+    try { await loadUserProfile(); } catch(e) {}
+    try {
+      const sr=await fetch(RAIL+'/api/subscription-status',{headers:{'Authorization':'Bearer '+sessionToken}});
+      if(sr.ok){const sd=await sr.json();if(sd.active)setUserPlan('pro');}
+    } catch(e) {}
+    try { await loadExpenses(); } catch(e) {}
+    showApp();
+  } catch (err) { hideLoading(); showToast(err.message || 'Incorrect email or password. Please try again.', true); }
+}
+
+async function submitSignup(e) {
+  e.preventDefault();
+  const name    = document.getElementById('su-name').value.trim();
+  const email   = document.getElementById('su-email').value.trim();
+  const pass    = document.getElementById('su-pass').value;
+  const confirm = document.getElementById('su-confirm').value;
+  const country = document.getElementById('su-country').value;
+  let ok = true;
+  ok = setErr('su-name','su-name-err',name.length<2) && ok;
+  ok = setErr('su-email','su-email-err',!isEmail(email)) && ok;
+  ok = setErr('su-pass','su-pass-err',pass.length<8) && ok;
+  ok = setErr('su-confirm','su-confirm-err',pass!==confirm||pass==='') && ok;
+  ok = setErr('su-country','su-country-err',!country) && ok;
+  if (!ok) return;
+  showLoading('Creating your account\u2026');
+  try {
+    const res  = await fetch(`${RAIL}/api/signup`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password:pass, fullName:name, country}) });
+    const json = await res.json();
+    if (!res.ok) {
+      let msg = json.error || 'Sign up failed.';
+      if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('duplicate')) {
+        msg = 'An account with this email already exists. Please sign in instead.';
+      }
+      throw new Error(msg);
+    }
+    currentUser  = json.user;
+    sessionToken = json.session?.access_token || null;
+    userCountry  = country;
+    const client = sb();
+    if (client && json.session) await client.auth.setSession(json.session);
+    // Re-fetch session to ensure it is fully persisted before checkout redirect
+    if (client) {
+      const { data: d2 } = await client.auth.getSession();
+      currentUser  = d2?.session?.user  || currentUser;
+      sessionToken = d2?.session?.access_token || sessionToken;
+    }
+    hideLoading(); applyTaxVisibility();
+    showApp(); applyAdminVisibility();
+  } catch (err) { hideLoading(); showToast(err.message||'Sign up failed.', true); }
+}
+
+function checkStrength(val) {
+  document.getElementById('pw-strength').classList.toggle('show', val.length>0);
+  let score=0;
+  if(val.length>=8) score++; if(/[A-Z]/.test(val)) score++; if(/[0-9]/.test(val)) score++; if(/[^A-Za-z0-9]/.test(val)) score++;
+  const cls=['weak','fair','good','strong'][Math.max(0,score-1)];
+  const labels=['Too weak','Fair','Good','Strong'];
+  [1,2,3,4].forEach((_,i)=>{ const b=document.getElementById('pb'+(i+1)); b.className='pw-bar'; if(i<score) b.classList.add(cls); });
+  const lbl=document.getElementById('pw-label');
+  lbl.textContent=val.length===0?'Enter a password':labels[Math.max(0,score-1)];
+  lbl.style.color=score<=1?'#e05555':score===2?'#e09055':score===3?'var(--gold)':'var(--green)';
+}
+
+let uploadedImage = null;
+
+function handleFile(input) {
+  const file = input.files[0]; if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please upload an image file (JPG, PNG, etc.)', true); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = e => { uploadedImage=e.target.result; document.getElementById('preview-img').src=uploadedImage; document.getElementById('preview-area').style.display='block'; document.getElementById('scan-drop').style.display='none'; };
+  reader.readAsDataURL(file);
+}
+
+function handleDrop(e) {
+  e.preventDefault(); document.getElementById('scan-drop').classList.remove('over');
+  const file=e.dataTransfer.files[0]; if(!file) return;
+  const dt=new DataTransfer(); dt.items.add(file);
+  const inp=document.getElementById('file-input'); inp.files=dt.files; handleFile(inp);
+}
+
+async function analyzeReceipt() {
+  if (!uploadedImage) return;
+  showLoading('AI is reading your receipt\u2026');
+  try {
+    const base64=uploadedImage.split(',')[1];
+    const mediaType=uploadedImage.split(';')[0].split(':')[1];
+    const res=await fetch(`${RAIL}/api/analyze-receipt`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${sessionToken}`},body:JSON.stringify({base64,mediaType})});
+    if(res.status===401||res.status===402){hideLoading();showTrialModal();return;}
+    if(!res.ok) throw new Error('Server error '+res.status);
+    const result=await res.json();
+    if(result.error) throw new Error(result.error);
+    document.getElementById('r-vendor').value=result.vendor||'';
+    document.getElementById('r-date').value=result.date||new Date().toISOString().split('T')[0];
+    document.getElementById('r-amount').value=result.amount||'';
+    document.getElementById('r-tax').value=result.tax||'';
+    document.getElementById('r-payment').value=result.payment||'';
+    const cat=document.getElementById('r-category');
+    for(const opt of cat.options){if(opt.value===result.category){cat.value=result.category;break;}}
+  } catch(err) { showToast(err.message,true); document.getElementById('r-vendor').value='Could not read receipt — please edit manually'; }
+  finally {
+    hideLoading();
+    document.querySelectorAll('.app-section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
+    const resultSection = document.getElementById('section-result');
+    if(resultSection) resultSection.classList.add('active');
+  }
+}
+
+let expenses = [];
+
+async function saveExpense() {
+  const exp={
+    vendor:document.getElementById('r-vendor').value||'Unknown',
+    date:document.getElementById('r-date').value||new Date().toISOString().split('T')[0],
+    amount:document.getElementById('r-amount').value||'0',
+    tax:document.getElementById('r-tax').value||'',
+    category:document.getElementById('r-category').value,
+    payment:document.getElementById('r-payment').value||'',
+    notes:document.getElementById('r-notes').value||'',
+  };
+  expenses.push(exp);
+  if(sessionToken){
+    fetch(`${RAIL}/api/expenses`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${sessionToken}`},body:JSON.stringify(exp)})
+      .then(r=>{if(!r.ok)r.json().then(e=>console.warn('[saveExpense]',e.error));}).catch(e=>console.warn('[saveExpense]',e.message));
+  }
+  document.getElementById('expenses-empty')?.remove();
+  const tbody=document.getElementById('expenses-tbody');
+  const row=document.createElement('tr');
+  row.innerHTML=`<td><div style="display:flex;align-items:center;gap:10px;">${vendorLogoHtml(exp.vendor,48)}<div><div class="exp-vendor">${esc(exp.vendor)}</div><span class="tag tg">${esc(exp.category)}</span></div></div></td><td>${esc(exp.date)}</td><td style="color:var(--gold);font-weight:700">${esc(exp.amount)}</td>`;
+  tbody.insertBefore(row,tbody.firstChild);
+  const recentEmpty=document.getElementById('recent-empty'); if(recentEmpty) recentEmpty.remove();
+  const recentList=document.getElementById('recent-list');
+  if(recentList){
+    const rrow=document.createElement('div'); rrow.className='rcpt-row';
+    rrow.innerHTML=`${vendorLogoHtml(exp.vendor,48)}<div class="rcpt-info"><div class="rcpt-name">${esc(exp.vendor)}</div><div class="rcpt-meta"><span class="tag tg">${esc(exp.category)}</span><span class="rcpt-date">${esc(exp.date)}</span></div></div><div class="rcpt-amt">${esc(exp.amount)}</div>`;
+    recentList.insertBefore(rrow,recentList.firstChild);
+    while(recentList.children.length>5) recentList.removeChild(recentList.lastChild);
+  }
+  updateDashboardKPIs();
+  uploadedImage=null;
+  document.getElementById('scan-drop').style.display='block';
+  document.getElementById('preview-area').style.display='none';
+  document.getElementById('file-input').value='';
+  document.getElementById('camera-input').value='';
+  showToast('\u2713 Expense saved!');
+  showSection(document.querySelector('[data-section="expenses"]'),'expenses');
+}
+
+function updateDashboardKPIs() {
+  const total=expenses.reduce((s,e)=>s+(parseFloat(String(e.amount).replace(/[^0-9.]/g,''))||0),0);
+  const taxSum=expenses.reduce((s,e)=>s+(parseFloat(String(e.tax).replace(/[^0-9.]/g,''))||0),0);
+  const count=expenses.length; const taxPct=total?Math.round((taxSum/total)*100):0;
+  document.getElementById('kpi-total').textContent='$'+total.toFixed(2);
+  document.getElementById('kpi-total-sub').textContent=count+' expense'+(count!==1?'s':'')+' logged';
+  document.getElementById('kpi-count').textContent=count;
+  document.getElementById('kpi-count-sub').textContent='This session';
+  document.getElementById('kpi-tax').textContent='$'+taxSum.toFixed(2);
+  document.getElementById('kpi-tax-sub').textContent=taxPct+'% of total';
+  updateBarChart();
+}
+
+const BAR_COLORS={'Food & Drink':'var(--gold)','Travel':'var(--green)','Office Supplies':'#8B7030','Software & Subscriptions':'#0ea5e988','Marketing':'#5B9B5B','Utilities':'#7A7A7A','Other':'var(--gray2)'};
+
+function updateBarChart() {
+  const chart=document.getElementById('chart-bars'); if(!chart) return;
+  const totals={};
+  expenses.forEach(e=>{const amt=parseFloat(String(e.amount).replace(/[^0-9.]/g,''))||0;totals[e.category]=(totals[e.category]||0)+amt;});
+  const entries=Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){chart.innerHTML=`<div style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px"><div style="font-size:28px;margin-bottom:10px">📊</div>No data yet</div>`;return;}
+  const max=entries[0][1];
+  chart.innerHTML=entries.map(([cat,amt])=>`<div class="bar-row"><span class="bar-lbl" style="width:90px;font-size:11px">${cat.split(' ')[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round((amt/max)*100)}%;background:${BAR_COLORS[cat]||'var(--gold)'}"></div></div><span class="bar-amt">$${amt.toFixed(0)}</span></div>`).join('');
+}
+
+function exportCSV() {
+  if(userPlan!=='pro'){requirePro();return;}
+  if(!expenses.length){showToast('No saved expenses yet.',true);return;}
+  let totalAmt=0,totalTax=0;
+  const rows=[['Vendor','Date','Category','Amount ($)','Tax ($)','Payment','Notes']];
+  expenses.forEach(e=>{const amt=parseFloat(String(e.amount).replace(/[^0-9.]/g,''))||0;const tax=parseFloat(String(e.tax).replace(/[^0-9.]/g,''))||0;totalAmt+=amt;totalTax+=tax;rows.push([e.vendor||'',e.date||'',e.category||'','$'+amt.toFixed(2),tax>0?'$'+tax.toFixed(2):'',e.payment||'',e.notes||'']);});
+  rows.push(['','','TOTAL','$'+totalAmt.toFixed(2),'$'+totalTax.toFixed(2),'','']);
+  const BOM='\uFEFF';
+  const csv=BOM+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})),download:'receiptai-expenses.csv'}).click();
+  showToast('\u2713 CSV exported!');
+}
+
+function requirePro() { if(userPlan!=='pro') showTrialModal(); }
+
+function setUserPlan(plan) {
+  userPlan=plan;
+  const planTag = document.querySelector('.sidebar-brand-tag');
+  if(planTag) planTag.textContent = plan==='pro' ? 'Pro Plan' : 'Free Plan';
+  const proCards=['rc-monthly','rc-annual','rc-category','rc-csv','excel-card'];
+  proCards.forEach(id=>{const card=document.getElementById(id);if(!card)return;if(plan==='pro'){card.classList.remove('locked');card.querySelector('.pro-badge').textContent='\u2713 Pro';}else{card.classList.add('locked');card.querySelector('.pro-badge').textContent='\uD83D\uDD12 Pro';}});
+  const proCard=document.getElementById('billing-pro-card');
+  const upgrade=document.getElementById('billing-upgrade');
+  if(proCard) proCard.style.display=plan==='pro'?'block':'none';
+  if(upgrade) upgrade.style.display=plan==='pro'?'none':'block';
+}
+
+function exportExcel() {
+  if(userPlan!=='pro'){requirePro();return;}
+  if(!expenses.length){showToast('No expenses to export yet.',true);return;}
+  const wb=XLSX.utils.book_new();
+  const catMap={};
+  expenses.forEach(e=>{const amt=parseFloat(String(e.amount).replace(/[^0-9.]/g,''))||0;catMap[e.category]=(catMap[e.category]||0)+amt;});
+  const summaryRows=[['Category','Total Spent ($)']];let grand=0;
+  Object.entries(catMap).sort((a,b)=>b[1]-a[1]).forEach(([cat,total])=>{summaryRows.push([cat,+total.toFixed(2)]);grand+=total;});
+  summaryRows.push(['',''],['GRAND TOTAL',+grand.toFixed(2)]);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summaryRows),'Summary');
+  const monthMap={};
+  expenses.forEach(e=>{const amt=parseFloat(String(e.amount).replace(/[^0-9.]/g,''))||0;const month=(e.date||'').slice(0,7)||'Unknown';if(!monthMap[month])monthMap[month]={total:0,count:0};monthMap[month].total+=amt;monthMap[month].count+=1;});
+  const monthRows=[['Month','Total Spent ($)','Receipts']];
+  Object.entries(monthMap).sort().forEach(([month,d])=>monthRows.push([month,+d.total.toFixed(2),d.count]));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(monthRows),'Monthly Breakdown');
+  const txRows=[['Vendor','Date','Category','Amount','Tax','Payment','Notes']];
+  expenses.forEach(e=>txRows.push([e.vendor,e.date,e.category,e.amount,e.tax||'',e.payment||'',e.notes||'']));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(txRows),'All Transactions');
+  XLSX.writeFile(wb,'receiptai-expenses.xlsx');
+  showToast('\u2713 Excel file exported!');
+}
+
+async function loadUserProfile() {
+  try {
+    const client=sb(); if(!client||!currentUser) return;
+    const timeout = new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000));
+    const query = client.from('users').select('plan, country').eq('id',currentUser.id).single();
+    const {data} = await Promise.race([query, timeout]);
+    if(data?.plan==='pro') setUserPlan('pro');
+    if(data?.country){userCountry=data.country;applyTaxVisibility();}
+  } catch(e) { console.warn('[loadUserProfile]', e.message); }
+  // Show username in sidebar
+  const uname = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || currentUser?.raw_user_meta_data?.full_name || currentUser?.email?.split('@')[0] || 'My Account';
+  const el = document.getElementById('sidebar-username');
+  if(el) el.textContent = 'Welcome, ' + uname;
+}
+
+
+function getLogoDomain(vendor) {
+  var map = {
+    'kfc': 'kfc.com', 'mcdonald': 'mcdonalds.com', 'starbucks': 'starbucks.com',
+    'subway': 'subway.com', 'pizza hut': 'pizzahut.com', 'burger king': 'burgerking.com',
+    'cheesecake factory': 'thecheesecakefactory.com', 'nando': 'nandos.com',
+    'costa': 'costa.co.uk', 'ikea': 'ikea.com', 'amazon': 'amazon.com',
+    'apple': 'apple.com', 'netflix': 'netflix.com', 'spotify': 'spotify.com',
+    'noon': 'noon.com', 'carrefour': 'carrefour.com', 'uber': 'uber.com',
+    'domino': 'dominos.com', 'walmart': 'walmart.com'
+  };
+  var lower = vendor.toLowerCase();
+  for (var key in map) { if (lower.indexOf(key) !== -1) return map[key]; }
+  return lower.replace(/[^a-z0-9]/g, '').slice(0, 20) + '.com';
+}
+function vendorLogoHtml(vendor, size) {
+  size = size || 36;
+  var domain = getLogoDomain(vendor);
+  var initial = vendor.charAt(0).toUpperCase();
+  var div = document.createElement('div');
+  div.style.cssText = 'width:'+size+'px;height:'+size+'px;border-radius:14px;overflow:hidden;flex-shrink:0;background:#1e1e1e;border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,0.4);';
+  var img = document.createElement('img');
+  img.src = 'https://cdn.brandfetch.io/' + domain + '/w/400/h/400?c=1idDcGXFw96jPJMhTBG';
+  img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:8px;';
+  img.onerror = function() {
+    div.style.background = '#1e1e1e';
+    div.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:800;font-size:'+(size*0.45)+'px;color:#0ea5e9;">'+initial+'</div>';
+  };
+  img.onload = function() {
+    if(this.naturalWidth < 10) {
+      div.style.background = '#1e1e1e';
+      div.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:800;font-size:'+(size*0.45)+'px;color:#0ea5e9;">'+initial+'</div>';
+    }
+  };
+  div.appendChild(img);
+  return div.outerHTML;
+}
+async function loadExpenses() {
+  if(!sessionToken) return;
+  let data;
+  try {
+    const res=await fetch(`${RAIL}/api/expenses`,{headers:{'Authorization':`Bearer ${sessionToken}`}});
+    if(res.status===401){showPage('login');return;}
+    if(res.status===402){return;} // checkAndShowTrialModal handles the modal on load
+    if(!res.ok){console.warn('[loadExpenses] HTTP',res.status);return;}
+    data=await res.json();
+  } catch(err){console.warn('[loadExpenses]',err.message);return;}
+  if(!data||!data.length) return;
+  // Clear existing before reload to prevent duplicates
+  expenses = [];
+  document.getElementById('expenses-empty')?.remove();
+  document.getElementById('recent-empty')?.remove();
+  const tbody=document.getElementById('expenses-tbody');
+  if(tbody) tbody.innerHTML = '';
+  const recentList=document.getElementById('recent-list');
+  if(recentList) recentList.innerHTML = '';
+  data.forEach((row,i)=>{
+    const exp={vendor:row.vendor||'Unknown',date:row.date||'',amount:row.amount!=null?(row.currency&&row.currency!=='USD'?row.currency+' ':'')+parseFloat(row.amount).toFixed(2):'0.00',tax:row.tax!=null&&row.tax>0?'$'+parseFloat(row.tax).toFixed(2):'',category:row.category||'Other',payment:row.payment||'',notes:row.notes||''};
+    expenses.push(exp);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:10px;">${vendorLogoHtml(exp.vendor,40)}<div><div class="exp-vendor">${esc(exp.vendor)}</div><span class="tag tg">${esc(exp.category)}</span></div></div></td><td>${esc(exp.date)}</td><td style="color:var(--gold);font-weight:700">${esc(exp.amount)}</td>`;
+    tbody.appendChild(tr);
+    if(i<5&&recentList){const rrow=document.createElement('div');rrow.className='rcpt-row';rrow.innerHTML=`${vendorLogoHtml(exp.vendor,48)}<div class="rcpt-info"><div class="rcpt-name">${esc(exp.vendor)}</div><div class="rcpt-meta"><span class="tag tg">${esc(exp.category)}</span><span class="rcpt-date">${esc(exp.date)}</span></div></div><div class="rcpt-amt">${esc(exp.amount)}</div>`;recentList.appendChild(rrow);}
+  });
+  updateDashboardKPIs();
+}
+
+function filterExpenses(q) { document.querySelectorAll('#expenses-tbody tr').forEach(row=>{row.style.display=row.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';}); }
+
+async function loadAdminStats() {
+  const tbody=document.getElementById('admin-users-tbody');
+  if(tbody) tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px">Loading...</td></tr>`;
+  try {
+    const res=await fetch(`${RAIL}/api/admin/stats`,{headers:{'Authorization':'Bearer '+sessionToken}});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+    // KPIs
+    set('admin-total-users', d.totalUsers);
+    set('admin-revenue', '$' + (d.proUsers * 7.99).toFixed(2));
+    set('admin-pro-users', d.proUsers);
+    set('admin-free-users', d.totalUsers - d.proUsers);
+    set('admin-total-expenses', d.totalExpenses + ' expenses logged');
+    set('admin-arr', '$' + (d.proUsers * 7.99 * 12).toFixed(0));
+    set('admin-conversion', d.totalUsers > 0 ? ((d.proUsers/d.totalUsers)*100).toFixed(1)+'%' : '0%');
+    set('admin-receipts', d.totalExpenses || 0);
+    // Users table
+    if(tbody&&d.recentUsers?.length){
+      tbody.innerHTML=d.recentUsers.map(u=>{
+        const date=u.created_at?new Date(u.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+        const planTag=u.plan==='pro'
+          ?`<span style="background:#0ea5e922;color:var(--gold);border:1px solid var(--gold3);border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600">✦ Pro</span>`
+          :`<span style="background:#2EAD2215;color:var(--green);border:1px solid #0ea5e940;border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600">Free</span>`;
+        return `<tr>
+          <td style="color:var(--white);font-weight:500">${esc(u.full_name||'Unknown')}</td>
+          <td style="color:var(--white2);font-size:13px">${esc(u.email||'')}</td>
+          <td>${planTag}</td>
+          <td style="color:var(--white3);font-size:13px">${date}</td>
+        </tr>`;
+      }).join('');
+    } else if(tbody) {
+      tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:32px 0;color:var(--white3);font-size:13px">No users yet</td></tr>`;
+    }
+  } catch(err){if(tbody)tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:32px 0;color:#e07070;font-size:13px">Failed to load: ${esc(err.message)}</td></tr>`;}
+}
+
+function showLoading(txt){document.getElementById('loading-txt').textContent=txt||'Loading...';document.getElementById('loading').classList.add('show');}
+function hideLoading(){document.getElementById('loading').classList.remove('show');}
+
+let _toastTimer;
+function showToast(msg,isErr){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(isErr?' err':'');
+  void t.offsetWidth;t.classList.add('show');
+  clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+(async()=>{
+  // Fetch public config from Railway so env vars are available when Vercel serves the static HTML
+  try {
+    const cfg = await fetch(`${RAIL}/api/config`).then(r => r.json());
+    if (cfg.paypalClientId)      window.PAYPAL_CLIENT_ID       = cfg.paypalClientId;
+    if (cfg.paypalPlanIdMonthly) window.PAYPAL_PLAN_ID_MONTHLY = cfg.paypalPlanIdMonthly;
+    if (cfg.supabaseUrl)         window.SUPABASE_URL            = cfg.supabaseUrl;
+    if (cfg.supabaseAnonKey)     window.SUPABASE_ANON_KEY       = cfg.supabaseAnonKey;
+    _sb = null; // reset cached client so sb() picks up the freshly set keys
+  } catch (e) { console.warn('[config]', e.message); }
+
+  const client=sb();
+  const params=new URLSearchParams(window.location.search);
+  const isCheckoutSuccess=params.get('checkout')==='success';
+
+  if(client){
+    const {data}=await client.auth.getSession();
+    currentUser=data?.session?.user||null;
+    sessionToken=data?.session?.access_token||null;
+
+    if(isCheckoutSuccess){
+      const subId=params.get('subscription_id')||params.get('token');
+      history.replaceState({},'','/');
+
+      if(!currentUser){
+        await new Promise(r=>setTimeout(r,800));
+        const {data:d2}=await client.auth.getSession();
+        currentUser=d2?.session?.user||null;
+        sessionToken=d2?.session?.access_token||null;
+      }
+
+      if(sessionToken){
+        fetch(RAIL+'/api/activate-pro',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionToken},body:JSON.stringify({subscriptionId:subId||undefined})}).catch(()=>{});
+      }
+      setUserPlan('pro');
+      showToast('🎉 Subscription activated — welcome to Pro!');
+
+      if(currentUser){
+        showApp();applyAdminVisibility();await loadUserProfile();await loadExpenses();
+      } else {
+        showPage('login');
+        showToast('Please sign in to access your Pro account.',true);
+      }
+    } else {
+      if(currentUser){
+        try { await loadUserProfile(); } catch(e) {}
+        try {
+          const sr=await fetch(RAIL+'/api/subscription-status',{headers:{'Authorization':'Bearer '+sessionToken}});
+          if(sr.ok){const sd=await sr.json();if(sd.active)setUserPlan('pro');}
+        } catch(e) {}
+        try { await loadExpenses(); } catch(e) {}
+        showApp();applyAdminVisibility();
+      }
+    }
+
+    client.auth.onAuthStateChange(async (event,session)=>{
+      currentUser=session?.user||null;
+      sessionToken=session?.access_token||null;
+      if(event==='SIGNED_IN' && session?.user && !isCheckoutSuccess){
+        const onAppPage = document.getElementById('page-app')?.classList.contains('active');
+        if(!onAppPage){
+          expenses=[]; setUserPlan('free');
+          const tb=document.getElementById('expenses-tbody'); if(tb) tb.innerHTML='';
+          const rl=document.getElementById('recent-list'); if(rl) rl.innerHTML='';
+          try { await loadUserProfile(); } catch(e) {}
+          try {
+            const sr=await fetch(RAIL+'/api/subscription-status',{headers:{'Authorization':'Bearer '+sessionToken}});
+            if(sr.ok){const sd=await sr.json();if(sd.active)setUserPlan('pro');}
+          } catch(e) {}
+          try { await loadExpenses(); } catch(e) {}
+          showApp();
+          applyAdminVisibility();
+        }
+      }
+      if(event==='SIGNED_IN' || event==='TOKEN_REFRESHED'){
+        applyAdminVisibility();
+      }
+      if(event==='SIGNED_OUT'){
+        currentUser=null; sessionToken=null;
+      }
+    });
+  }
+})();
+
+function mobileNav(section) {
+  document.querySelectorAll(".mobile-nav-item").forEach(i => i.classList.remove("active"));
+  const el = document.getElementById("mnav-" + section);
+  if (el) el.classList.add("active");
+  showSection(document.querySelector("[data-section=" + section + "]"), section);
+  if (section === "admin") loadAdminStats();
+}
+
+/* ── Google OAuth ── */
+async function signInWithGoogle() {
+  const client = sb();
+  if (!client) { showToast('Auth not configured.', true); return; }
+  const { error } = await client.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/' },
+  });
+  if (error) showToast(error.message, true);
+}
+
+/* ── Trial modal ── */
+function showTrialModal() {
+  document.getElementById('trial-modal').classList.add('show');
+  renderPayPalButton();
+}
+function hideTrialModal() {
+  document.getElementById('trial-modal').classList.remove('show');
+}
+
+async function checkAndShowTrialModal() {
+  if (!sessionToken) return;
+  // Don't interrupt the user if they're already looking at the billing/plan page
+  if (document.getElementById('section-billing')?.classList.contains('active')) return;
+  try {
+    const res = await fetch(`${RAIL}/api/subscription-status`, {
+      headers: { 'Authorization': `Bearer ${sessionToken}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.active) {
+      setUserPlan('pro');
+    } else {
+      showTrialModal();
+    }
+  } catch (err) {
+    console.warn('[checkAndShowTrialModal]', err.message);
+  }
+}
+
+/* ── PayPal JS SDK ── */
+function loadPayPalSDK() {
+  return new Promise((resolve, reject) => {
+    if (window.paypal) { resolve(); return; }
+    if (!window.PAYPAL_CLIENT_ID) { reject(new Error('PayPal client ID not configured')); return; }
+    const s = document.createElement('script');
+    s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(window.PAYPAL_CLIENT_ID)}&vault=true&intent=subscription&enable-funding=applepay,venmo,card&components=buttons`;
+    s.onload  = resolve;
+    s.onerror = () => reject(new Error('Failed to load PayPal SDK'));
+    document.head.appendChild(s);
+  });
+}
+
+async function renderPayPalButton() {
+  const container = document.getElementById('paypal-button-container');
+  container.innerHTML = '<div style="color:var(--white3);font-size:13px;padding:12px 0">Loading PayPal…</div>';
+  try {
+    await loadPayPalSDK();
+    container.innerHTML = '';
+    window.paypal.Buttons({
+      style: { shape: 'rect', color: 'gold', layout: 'vertical', label: 'subscribe', height: 50 },
+      createSubscription(_data, actions) {
+        return actions.subscription.create({ plan_id: window.PAYPAL_PLAN_ID_MONTHLY });
+      },
+      async onApprove(data) {
+        showLoading('Activating your trial…');
+        await activateSubscription(data.subscriptionID);
+      },
+      onError(err) {
+        console.error('[PayPal]', err);
+        showToast('PayPal error — please try again.', true);
+      },
+    }).render('#paypal-button-container');
+  } catch (err) {
+    container.innerHTML = `<div style="color:#e07070;font-size:13px;padding:8px 0">${esc(err.message)}</div>`;
+  }
+}
+
+async function activateSubscription(subscriptionId) {
+  try {
+    const res = await fetch(`${RAIL}/api/activate-pro`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+      body: JSON.stringify({ subscriptionId }),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || 'Activation failed.');
+    setUserPlan('pro');
+    hideTrialModal();
+    hideLoading();
+    showToast('🎉 Trial started — welcome to ReceiptAI Pro!');
+  } catch (err) {
+    hideLoading();
+    showToast(err.message, true);
+  }
+}
+</script>
+
+<div class="mobile-nav" id="mobile-nav" style="display:none">
+  <div class="mobile-nav-item active" id="mnav-dashboard" onclick="mobileNav('dashboard')"><span class="mni">📊</span>Home</div>
+  <div class="mobile-nav-item" id="mnav-scan" onclick="mobileNav('scan')"><span class="mni">📸</span>Scan</div>
+  <div class="mobile-nav-item" id="mnav-expenses" onclick="mobileNav('expenses')"><span class="mni">🗂</span>Expenses</div>
+  <div class="mobile-nav-item" id="mnav-billing" onclick="mobileNav('billing')"><span class="mni">✦</span>Plan</div>
+  <div class="mobile-nav-item" id="mnav-reports" onclick="mobileNav('reports')"><span class="mni">📄</span>Reports</div>
+</div>
+  <script>
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(r => console.log('[SW] registered', r.scope))
+          .catch(e => console.warn('[SW] failed', e));
+      });
+    }
+    // Handle app shortcuts (?action=scan / ?action=expenses)
+    window.addEventListener('DOMContentLoaded', () => {
+      const action = new URLSearchParams(window.location.search).get('action');
+      if (action === 'scan' && currentUser) {
+        setTimeout(() => { const el = document.querySelector('[data-section="scan"]'); if(el) el.click(); }, 500);
+      }
+      if (action === 'expenses' && currentUser) {
+        setTimeout(() => { const el = document.querySelector('[data-section="expenses"]'); if(el) el.click(); }, 500);
+      }
+    });
+  
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('pwa-banner');
+  if (banner) banner.style.display = 'flex';
+});
+
+async function installPWA() {
+  if (!deferredPrompt) {
+    alert('To install on iPhone: tap the Share button then Add to Home Screen');
+    return;
+  }
+  deferredPrompt.prompt();
+  const result = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('pwa-banner').style.display = 'none';
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwa-banner').style.display = 'none';
+  deferredPrompt = null;
+});
+
+</script>
+</body>
+</html>

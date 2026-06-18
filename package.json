@@ -9,6 +9,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.54.0",
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
     "@supabase/supabase-js": "^2.45.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
