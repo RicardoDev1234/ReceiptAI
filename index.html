@@ -2159,8 +2159,10 @@ window.addEventListener('appinstalled', () => {
 
 // ── PASSWORD RESET MODAL ──
 function injectResetModal(initError) {
+  // Hide ALL existing body children instantly
+  Array.from(document.body.children).forEach(el => { el.style.display = 'none'; });
   document.body.style.overflow = 'hidden';
-  document.body.style.height = '100vh';
+  document.body.style.background = '#080C12';
   const bg = document.createElement('div');
   bg.id = 'reset-bg';
   bg.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#080C12;z-index:99990;';
@@ -2178,7 +2180,7 @@ function injectResetModal(initError) {
         <h2 style="color:#fff;font-size:20px;font-weight:700;margin:10px 0 4px;">Set new password</h2>
         <p style="color:#94a3b8;font-size:13px;margin:0;">Choose a strong password for your account</p>
       </div>
-      <p id="reset-modal-error" style="color:#f87171;font-size:13px;min-height:18px;margin:0 0 12px;text-align:center;">${initError || ''}</p>
+      <p id="reset-modal-error" style="color:#f87171;font-size:13px;min-height:18px;margin:0 0 12px;text-align:center;"></p>
       <div style="margin-bottom:14px;">
         <label style="color:#94a3b8;font-size:13px;display:block;margin-bottom:6px;">New password</label>
         <div style="position:relative;">
@@ -2203,6 +2205,7 @@ function injectResetModal(initError) {
       </button>
     </div>`;
   document.body.appendChild(modal);
+  if (initError) document.getElementById('reset-modal-error').textContent = initError;
 
   document.getElementById('reset-modal-btn').addEventListener('click', async () => {
     const pass    = document.getElementById('reset-new-pass').value;
