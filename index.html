@@ -2219,11 +2219,9 @@ function injectResetModal(initError) {
     if (pass.length < 6)    { errEl.textContent = 'Password must be at least 6 characters.'; return; }
     if (pass !== confirm)   { errEl.textContent = 'Passwords do not match.'; return; }
     btn.textContent = 'Updating...'; btn.disabled = true;
-    const sb = window._sb || (window.supabase && window.supabase.createClient(
-      'https://dnoonrvuetsvbrxaapbr.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRub29ucnZ1ZXRzdmJyeGFhcGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwMzgwNTksImV4cCI6MjA1OTYxNDA1OX0.2YbFeBIBiLbFuKMlFbDiBa_yMWtFgkBPXSMuFSIoirs'
-    ));
-    const { error } = await sb.auth.updateUser({ password: pass });
+    const client = window._resetClient || sb();
+    if (!client) { errEl.textContent = 'Session expired. Please request a new reset link.'; btn.textContent = 'Update password'; btn.disabled = false; return; }
+    const { error } = await client.auth.updateUser({ password: pass });
     if (error) {
       errEl.textContent = error.message;
       btn.textContent = 'Update password'; btn.disabled = false;
@@ -2258,9 +2256,12 @@ function injectResetModal(initError) {
     const client = sb(); // use the existing sb() function
     if (client) {
       client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-        .then(({ error }) => {
+        .then(({ data, error }) => {
           if (error) injectResetModal('Session error: ' + error.message);
-          else injectResetModal();
+          else {
+            window._resetClient = client;
+            injectResetModal();
+          }
         });
     } else if (tries > 0) {
       setTimeout(() => attemptSetSession(tries - 1), 200);
