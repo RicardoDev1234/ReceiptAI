@@ -828,7 +828,7 @@
       const btn = document.getElementById('reset-submit-btn');
       btn.textContent = 'Sending...'; btn.disabled = true;
       const { error } = await sbClient.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://receipt-ai-coral.vercel.app/reset.html'
+        redirectTo: 'https://receipt-ai-coral.vercel.app/index.html'
       });
       if (error) {
         errEl.textContent = error.message;
