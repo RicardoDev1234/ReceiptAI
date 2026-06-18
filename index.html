@@ -2243,40 +2243,36 @@ function injectResetModal(initError) {
   });
 }
 
-// PASSWORD RECOVERY — listen for Supabase PASSWORD_RECOVERY event
+// PASSWORD RECOVERY — detect recovery token in URL hash
 (function setupPasswordRecovery() {
-  function waitForSb(attempts) {
-    const sb = window._sb;
-    if (sb) {
-      // Check URL hash for recovery token (Supabase v2 pkce flow)
-      const hash = window.location.hash;
-      if (hash && hash.includes('access_token')) {
-        const params = new URLSearchParams(hash.replace('#', '?'));
-        if (params.get('type') === 'recovery') {
-          sb.auth.setSession({
-            access_token: params.get('access_token'),
-            refresh_token: params.get('refresh_token') || ''
-          }).then(({ error }) => {
-            if (error) injectResetModal('Session error: ' + error.message);
-            else injectResetModal();
-          });
-          return;
-        }
-      }
-      // Also listen for the onAuthStateChange PASSWORD_RECOVERY event
-      sb.auth.onAuthStateChange((event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          injectResetModal();
-        }
-      });
-    } else if (attempts > 0) {
-      setTimeout(() => waitForSb(attempts - 1), 300);
+  const hash = window.location.hash;
+  if (!hash || !hash.includes('type=recovery') || !hash.includes('access_token')) return;
+
+  const params = new URLSearchParams(hash.replace('#', '?'));
+  if (params.get('type') !== 'recovery') return;
+
+  const accessToken  = params.get('access_token');
+  const refreshToken = params.get('refresh_token') || '';
+
+  function attemptSetSession(tries) {
+    const client = sb(); // use the existing sb() function
+    if (client) {
+      client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error }) => {
+          if (error) injectResetModal('Session error: ' + error.message);
+          else injectResetModal();
+        });
+    } else if (tries > 0) {
+      setTimeout(() => attemptSetSession(tries - 1), 200);
+    } else {
+      injectResetModal('Could not connect. Please try again.');
     }
   }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => waitForSb(30));
+    document.addEventListener('DOMContentLoaded', () => attemptSetSession(30));
   } else {
-    waitForSb(30);
+    attemptSetSession(30);
   }
 })();
 
