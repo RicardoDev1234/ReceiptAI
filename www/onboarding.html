@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ReceiptAI — Get Started</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080C12;
+      --card:      #141414;
+      --elevated:  #1e1e1e;
+      --accent:    #0ea5e9;
+      --accent-h:  #38bdf8;
+      --muted:     #94a3b8;
+      --border:    rgba(14,165,233,0.12);
+      --border-m:  rgba(14,165,233,0.35);
+      --grad:      linear-gradient(135deg, #0369a1, #06b6d4);
+    }
+
+    html, body {
+      height: 100%;
+      background: #000;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── PHONE SHELL ── */
+    #onboarding {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      max-height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      border-radius: 0;
+      flex-shrink: 0;
+    }
+
+    /* On actual mobile devices, fill the screen naturally */
+    @media (max-width: 430px) {
+      #onboarding {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        border-radius: 0;
+      }
+    }
+
+    /* ── SCREENS ── */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── SCREEN 1 & 2 (image top, content bottom) ── */
+    .screen-slide {
+      background: var(--bg);
+    }
+    .slide-image-wrap {
+      position: relative;
+      width: 100%;
+      height: 48%;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .slide-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+    .slide-fade {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: linear-gradient(to bottom, transparent, var(--bg));
+    }
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 28px 0;
+    }
+    .slide-headline {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .slide-headline span { color: var(--accent); }
+    .slide-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* dots */
+    .dots {
+      display: flex;
+      gap: 6px;
+      margin-top: 28px;
+    }
+    .dot {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(14,165,233,0.13);
+      transition: width 0.3s ease, background 0.3s ease;
+      width: 6px;
+    }
+    .dot.active {
+      width: 22px;
+      background: var(--accent);
+    }
+
+    /* slide bottom nav */
+    .slide-nav {
+      margin-top: auto;
+      padding: 20px 28px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .btn-skip {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      padding: 8px 0;
+    }
+    .btn-next {
+      background: var(--grad);
+      border: none;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      padding: 14px 32px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-next:active { opacity: 0.8; }
+
+    /* ── AUTH SCREENS (sign up / sign in) ── */
+    .screen-auth {
+      background: var(--bg);
+      padding: 56px 28px 36px;
+      justify-content: flex-start;
+      overflow-y: auto;
+    }
+    .auth-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .auth-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: rgba(14,165,233,0.08);
+      border: 1.5px solid rgba(14,165,233,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .auth-icon svg { width: 28px; height: 28px; }
+    .auth-brand {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .auth-brand span { color: var(--accent); }
+    .auth-headline {
+      font-size: 26px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .auth-sub {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .trial-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(14,165,233,0.07);
+      border: 1px solid rgba(14,165,233,0.21);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+
+    /* inputs */
+    .input-group { margin-bottom: 12px; }
+    .input-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      display: block;
+    }
+    .auth-input {
+      width: 100%;
+      background: rgba(14,165,233,0.08);
+      border: 1.5px solid rgba(14,165,233,0.28);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .auth-input::placeholder { color: var(--muted); }
+    .auth-input:focus { border-color: var(--accent); }
+
+    .forgot {
+      text-align: right;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .forgot a { color: var(--accent); text-decoration: none; }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--grad);
+      border: none;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      padding: 16px;
+      border-radius: 14px;
+      cursor: pointer;
+      margin-bottom: 18px;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:active { opacity: 0.8; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+    .divider-text { font-size: 12px; color: var(--muted); }
+
+    .btn-google {
+      width: 100%;
+      background: #fff;
+      border: none;
+      color: #1a1a2e;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      padding: 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      transition: opacity 0.2s;
+    }
+    .btn-google:active { opacity: 0.8; }
+
+    .auth-switch {
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: auto;
+      padding-top: 8px;
+    }
+    .auth-switch a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .error-msg {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171;
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    /* ── PAYWALL ── */
+    .screen-paywall {
+      background: var(--bg);
+      overflow-y: auto;
+    }
+    .paywall-image-wrap {
+      width: 100%;
+      height: 200px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 0;
+      flex-shrink: 0;
+    }
+    .paywall-image-wrap img {
+      height: 180px;
+      object-fit: contain;
+    }
+    .paywall-content {
+      padding: 20px 24px 36px;
+    }
+    .paywall-headline {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: 24px;
+    }
+    .paywall-headline span { color: var(--accent); }
+
+    .feature-list { margin-bottom: 24px; }
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .feature-row:last-child { border-bottom: none; }
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-icon svg { width: 18px; height: 18px; }
+    .fi-scan { background: linear-gradient(135deg, #0ea5e9, #06b6d4); }
+    .fi-tag  { background: linear-gradient(135deg, #6366f1, #0ea5e9); }
+    .fi-exp  { background: linear-gradient(135deg, #059669, #06b6d4); }
+    .fi-calc { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+    .feature-text { font-size: 14px; color: #e2e8f0; line-height: 1.4; }
+    .feature-text strong { color: var(--accent); font-weight: 600; }
+
+    /* plan cards */
+    .plan-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .plan-card {
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      position: relative;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .plan-card.selected { border-color: rgba(255,255,255,0.35); }
+    .plan-monthly { background: linear-gradient(135deg, #6366f1, #0ea5e9); }
+    .plan-yearly  { background: linear-gradient(135deg, #059669, #06b6d4); }
+
+    .plan-label { font-size: 16px; font-weight: 700; }
+    .plan-sub   { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
+    .plan-price { text-align: right; }
+    .plan-price-main { font-size: 20px; font-weight: 700; }
+    .plan-price-sub  { font-size: 11px; color: #cbd5e1; }
+
+    .best-badge {
+      position: absolute;
+      top: -10px;
+      right: 14px;
+      background: var(--grad);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-trial {
+      width: 100%;
+      background: var(--grad);
+      border: none;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      padding: 17px;
+      border-radius: 14px;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      margin-bottom: 10px;
+      transition: opacity 0.2s;
+    }
+    .btn-trial:active { opacity: 0.8; }
+
+    .cancel-txt {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .paywall-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .paywall-links a {
+      font-size: 11px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    /* loading spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="onboarding">
+
+  <!-- ══ SCREEN 1: SCAN ══ -->
+  <div class="screen screen-slide active" id="s1">
+    <div class="slide-image-wrap">
+      <!-- Replace src with your actual DALL-E image path/URL -->
+      <img src="onboarding-scan.png" alt="Phone scanning a receipt" onerror="this.style.background='linear-gradient(135deg,#0369a1,#06b6d4)';this.removeAttribute('src')" />
+      <div class="slide-fade"></div>
+    </div>
+    <div class="slide-content">
+      <div class="slide-headline">Scan any receipt <span>instantly</span></div>
+      <div class="slide-sub">One tap. Our AI does the rest. Vendor, amount, date and category logged in seconds.</div>
+      <div class="dots">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+    <div class="slide-nav">
+      <button class="btn-skip" data-action="goTo" data-arg="s-signup">SKIP</button>
+      <button class="btn-next" data-action="goTo" data-arg="s2">NEXT</button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 2: TRACK ══ -->
+  <div class="screen screen-slide" id="s2">
+    <div class="slide-image-wrap">
+      <!-- Replace src with your actual DALL-E image path/URL -->
+      <img src="onboarding-dashboard.png" alt="Expense dashboard" onerror="this.style.background='linear-gradient(135deg,#059669,#06b6d4)';this.removeAttribute('src')" />
+      <div class="slide-fade"></div>
+    </div>
+    <div class="slide-content">
+      <div class="slide-headline">Know where your <span>money goes</span></div>
+      <div class="slide-sub">See every expense by category. Food, shopping, travel — all tracked automatically in one place.</div>
+      <div class="dots">
+        <div class="dot"></div>
+        <div class="dot active"></div>
+      </div>
+    </div>
+    <div class="slide-nav">
+      <button class="btn-skip" data-action="goTo" data-arg="s-signup">SKIP</button>
+      <button class="btn-next" data-action="goTo" data-arg="s-paywall">NEXT</button>
+    </div>
+  </div>
+
+  <!-- ══ PAYWALL ══ -->
+  <div class="screen screen-paywall" id="s-paywall">
+    <div class="paywall-image-wrap">
+      <!-- Replace src with your actual trophy image -->
+      <img src="onboarding-trophy.png" alt="ReceiptAI Pro" onerror="this.style.display='none'" />
+    </div>
+    <div class="paywall-content">
+      <div class="paywall-headline">Scan smarter with <span>ReceiptAI Pro</span></div>
+
+      <div class="feature-list">
+        <div class="feature-row">
+          <div class="feature-icon fi-scan">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2"><path d="M4 7V5a2 2 0 012-2h2M4 17v2a2 2 0 002 2h2M20 7V5a2 2 0 00-2-2h-2M20 17v2a2 2 0 01-2 2h-2M7 12h10"/></svg>
+          </div>
+          <div class="feature-text"><strong>Unlimited</strong> AI receipt scanning</div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon fi-tag">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+          </div>
+          <div class="feature-text">Auto tax <strong>deduction</strong> tracking</div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon fi-exp">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <div class="feature-text"><strong>Every</strong> expense auto categorized</div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon fi-calc">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2"><path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3M16 3h5v5M10 14L21 3"/></svg>
+          </div>
+          <div class="feature-text">Zero manual entry. <strong>Ever.</strong></div>
+        </div>
+      </div>
+
+      <div class="plan-cards">
+        <div class="plan-card plan-monthly" id="plan-monthly" data-action="selectPlan" data-arg="monthly">
+          <div>
+            <div class="plan-label">Monthly</div>
+            <div class="plan-sub">Billed every month</div>
+          </div>
+          <div class="plan-price">
+            <div class="plan-price-main">$7.99</div>
+            <div class="plan-price-sub">$7.99/month</div>
+          </div>
+        </div>
+        <div class="plan-card plan-yearly selected" id="plan-yearly" data-action="selectPlan" data-arg="yearly">
+          <div class="best-badge">BEST OFFER</div>
+          <div>
+            <div class="plan-label">Yearly</div>
+            <div class="plan-sub">Save 37% vs monthly</div>
+          </div>
+          <div class="plan-price">
+            <div class="plan-price-main">$49.99</div>
+            <div class="plan-price-sub">$0.87/week</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-trial" data-action="goTo" data-arg="s-signup">START MY 7-DAY TRIAL</button>
+      <div class="cancel-txt">Cancel anytime</div>
+      <div class="paywall-links">
+        <a href="#">Terms of Use</a>
+        <a href="#">Restore Purchases</a>
+        <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SIGN UP ══ -->
+  <div class="screen screen-auth" id="s-signup">
+    <div class="auth-logo">
+      <div class="auth-icon">
+        <svg fill="none" viewBox="0 0 24 24" stroke="#0ea5e9" stroke-width="1.8">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <div class="auth-brand">Receipt<span>AI</span></div>
+    </div>
+
+    <div class="auth-headline">Get started free</div>
+    <div class="trial-badge">✦ 7-day free trial</div>
+
+    <div id="signup-error" class="error-msg"></div>
+
+    <div class="input-group">
+      <label class="input-label">Email address</label>
+      <input class="auth-input" type="email" id="signup-email" placeholder="Enter your email" />
+    </div>
+    <div class="input-group">
+      <label class="input-label">Password</label>
+      <input class="auth-input" type="password" id="signup-password" placeholder="Enter your password" />
+    </div>
+    <div class="forgot">Forgot password? <a href="#" data-action="showReset">Reset</a></div>
+
+    <button class="btn-primary" id="signup-btn" data-action="handleSignUp">Create account</button>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">or sign up with</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <button class="btn-google" data-action="handleGoogleAuth">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign up with Google
+    </button>
+
+    <div class="auth-switch">Already have an account? <a href="#" data-action="goTo" data-arg="s-signin">Log in</a></div>
+  </div>
+
+  <!-- ══ NEW PASSWORD (deep link from reset email) ══ -->
+  <div class="screen screen-auth" id="s-newpass">
+    <div class="auth-logo">
+      <div class="auth-icon">
+        <svg fill="none" viewBox="0 0 24 24" stroke="#0ea5e9" stroke-width="1.8">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <div class="auth-brand">Receipt<span>AI</span></div>
+    </div>
+    <div class="auth-headline">Set new password</div>
+    <div class="auth-sub">Choose a strong password for your account</div>
+    <div id="newpass-error" class="error-msg"></div>
+    <div class="input-group">
+      <label class="input-label">New password</label>
+      <input class="auth-input" type="password" id="newpass-password" placeholder="At least 6 characters" />
+    </div>
+    <div class="input-group">
+      <label class="input-label">Confirm password</label>
+      <input class="auth-input" type="password" id="newpass-confirm" placeholder="Repeat your password" />
+    </div>
+    <button class="btn-primary" id="newpass-btn" data-action="handleNewPassword">Update password</button>
+  </div>
+
+  <!-- ══ SIGN IN ══ -->
+  <div class="screen screen-auth" id="s-signin">
+    <div class="auth-logo">
+      <div class="auth-icon">
+        <svg fill="none" viewBox="0 0 24 24" stroke="#0ea5e9" stroke-width="1.8">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <div class="auth-brand">Receipt<span>AI</span></div>
+    </div>
+
+    <div class="auth-headline">Welcome back</div>
+    <div class="auth-sub">Sign in to continue tracking your expenses</div>
+
+    <div id="signin-error" class="error-msg"></div>
+
+    <div class="input-group">
+      <label class="input-label">Email address</label>
+      <input class="auth-input" type="email" id="signin-email" placeholder="Enter your email" />
+    </div>
+    <div class="input-group">
+      <label class="input-label">Password</label>
+      <input class="auth-input" type="password" id="signin-password" placeholder="Enter your password" />
+    </div>
+    <div class="forgot">Forgot password? <a href="#" data-action="showReset">Reset</a></div>
+
+    <button class="btn-primary" id="signin-btn" data-action="handleSignIn">Sign in</button>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">or sign in with</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <button class="btn-google" data-action="handleGoogleAuth">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+
+    <div class="auth-switch">Don't have an account? <a href="#" data-action="goTo" data-arg="s-signup">Sign up</a></div>
+  </div>
+
+</div>
+
+<script>
+  // ── CONFIG ──
+  const SUPABASE_URL = 'https://dnoonrvuetsvbrxaapbr.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_x7fXgf7s6Ibke1DlcctxLA_56cezBt0';
+
+  // Safe init — if the Supabase library hasn't loaded (slow network, blocked
+  // CDN, etc.) we DON'T crash the whole script. Navigation must always work.
+  let sbClient = null;
+  try {
+    if (window.supabase && window.supabase.createClient) {
+      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+      console.warn('Supabase library not available yet — auth disabled, navigation still works.');
+    }
+  } catch (e) {
+    console.warn('Supabase init failed:', e);
+  }
+
+  // ── SKIP ONBOARDING IF ALREADY LOGGED IN ──
+  (async () => {
+    try {
+      if (!sbClient) return;
+      const { data: { session } } = await sbClient.auth.getSession();
+      if (session) window.location.href = 'index.html';
+    } catch (e) {
+      console.warn('Session check skipped:', e);
+    }
+  })();
+
+  // ── NAVIGATION ──
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    // scroll auth screens to top
+    const el = document.getElementById(id);
+    if (el) el.scrollTop = 0;
+  }
+
+  // ── PLAN SELECTION ──
+  let selectedPlan = 'yearly';
+  function selectPlan(plan) {
+    selectedPlan = plan;
+    document.getElementById('plan-monthly').classList.toggle('selected', plan === 'monthly');
+    document.getElementById('plan-yearly').classList.toggle('selected', plan === 'yearly');
+  }
+
+  // ── SIGN UP ──
+  async function handleSignUp() {
+    const email    = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const btn      = document.getElementById('signup-btn');
+    const errEl    = document.getElementById('signup-error');
+
+    errEl.style.display = 'none';
+    if (!email || !password) { showError(errEl, 'Please fill in all fields.'); return; }
+    if (password.length < 6) { showError(errEl, 'Password must be at least 6 characters.'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Creating account…';
+
+    if (!sbClient) { showError(errEl, 'Connection not ready. Check your internet and try again.'); btn.disabled = false; btn.textContent = 'Create account'; return; }
+    const { error } = await sbClient.auth.signUp({ email, password });
+    if (error) {
+      showError(errEl, error.message);
+      btn.disabled = false;
+      btn.textContent = 'Create account';
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+
+  // ── SIGN IN ──
+  async function handleSignIn() {
+    const email    = document.getElementById('signin-email').value.trim();
+    const password = document.getElementById('signin-password').value;
+    const btn      = document.getElementById('signin-btn');
+    const errEl    = document.getElementById('signin-error');
+
+    errEl.style.display = 'none';
+    if (!email || !password) { showError(errEl, 'Please fill in all fields.'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Signing in…';
+
+    if (!sbClient) { showError(errEl, 'Connection not ready. Check your internet and try again.'); btn.disabled = false; btn.textContent = 'Sign in'; return; }
+    const { error } = await sbClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      showError(errEl, error.message);
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+
+  // ── GOOGLE AUTH ──
+  async function handleGoogleAuth() {
+    if (!sbClient) { alert('Connection not ready. Check your internet and try again.'); return; }
+    await sbClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/index.html' }
+    });
+  }
+
+  // ── RESET PASSWORD ──
+  function showReset() {
+    if (!sbClient) { alert('Connection not ready. Check your internet and try again.'); return; }
+    const overlay = document.createElement('div');
+    overlay.id = 'reset-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;';
+    overlay.innerHTML = `
+      <div style="background:#141414;border:1px solid #0ea5e930;border-radius:16px;padding:28px 24px;width:88%;max-width:340px;">
+        <h3 style="color:#fff;font-size:18px;font-weight:600;margin:0 0 6px;">Reset password</h3>
+        <p style="color:#94a3b8;font-size:13px;margin:0 0 18px;">Enter your email and we'll send you a reset link.</p>
+        <input id="reset-email-input" type="email" placeholder="Email address"
+          style="width:100%;box-sizing:border-box;background:#0ea5e910;border:1px solid #0ea5e940;border-radius:10px;padding:12px 14px;color:#fff;font-size:15px;outline:none;margin-bottom:6px;" />
+        <p id="reset-error" style="color:#f87171;font-size:12px;min-height:16px;margin:0 0 12px;"></p>
+        <button id="reset-submit-btn"
+          style="width:100%;background:linear-gradient(135deg,#0369a1,#06b6d4);border:none;border-radius:10px;padding:13px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+          Send reset link
+        </button>
+        <button id="reset-cancel-btn"
+          style="width:100%;background:transparent;border:1px solid #0ea5e930;border-radius:10px;padding:12px;color:#94a3b8;font-size:15px;cursor:pointer;">
+          Cancel
+        </button>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('reset-cancel-btn').addEventListener('click', () => overlay.remove());
+    document.getElementById('reset-submit-btn').addEventListener('click', async () => {
+      const email = document.getElementById('reset-email-input').value.trim();
+      const errEl = document.getElementById('reset-error');
+      if (!email) { errEl.textContent = 'Please enter your email.'; return; }
+      const btn = document.getElementById('reset-submit-btn');
+      btn.textContent = 'Sending...'; btn.disabled = true;
+      const { error } = await sbClient.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://receipt-ai-coral.vercel.app/reset.html'
+      });
+      if (error) {
+        errEl.textContent = error.message;
+        btn.textContent = 'Send reset link'; btn.disabled = false;
+      } else {
+        overlay.innerHTML = `
+          <div style="background:#141414;border:1px solid #0ea5e930;border-radius:16px;padding:36px 24px;width:88%;max-width:340px;text-align:center;">
+            <div style="font-size:40px;margin-bottom:12px;">📧</div>
+            <h3 style="color:#fff;font-size:18px;font-weight:600;margin:0 0 8px;">Check your email</h3>
+            <p style="color:#94a3b8;font-size:13px;margin:0 0 24px;">We sent a reset link to <strong style="color:#fff;">${email}</strong></p>
+            <button onclick="document.getElementById('reset-overlay').remove()"
+              style="background:linear-gradient(135deg,#0369a1,#06b6d4);border:none;border-radius:10px;padding:13px 32px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">
+              Got it
+            </button>
+          </div>`;
+      }
+    });
+  }
+
+  // ── HELPERS ──
+  function showError(el, msg) {
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const active = document.querySelector('.screen.active');
+    if (active.id === 's-signup') handleSignUp();
+    if (active.id === 's-signin') handleSignIn();
+  });
+
+  // ── Event delegation for all buttons ──
+  // One listener on the document handles every tap. Using data-action instead
+  // of inline onclick avoids the Capacitor iOS webview scoping issue where
+  // inline handlers can't see functions defined in this script.
+  // ── SET NEW PASSWORD ──
+  async function handleNewPassword() {
+    const pass    = document.getElementById('newpass-password').value;
+    const confirm = document.getElementById('newpass-confirm').value;
+    const errEl   = document.getElementById('newpass-error');
+    const btn     = document.getElementById('newpass-btn');
+    errEl.textContent = '';
+    if (!pass || !confirm) { errEl.textContent = 'Please fill in both fields.'; return; }
+    if (pass.length < 6)   { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+    if (pass !== confirm)  { errEl.textContent = 'Passwords do not match.'; return; }
+    btn.textContent = 'Updating...'; btn.disabled = true;
+    const { error } = await sbClient.auth.updateUser({ password: pass });
+    if (error) {
+      errEl.textContent = error.message;
+      btn.textContent = 'Update password'; btn.disabled = false;
+    } else {
+      await sbClient.auth.signOut();
+      goTo('s-signin');
+      setTimeout(() => {
+        const el = document.getElementById('signin-error');
+        if (el) { el.textContent = 'Password updated! Sign in with your new password.'; el.style.color = '#34d399'; }
+      }, 100);
+    }
+  }
+
+  // ── DEEP LINK: handle receiptai://reset-password#access_token=...&type=recovery ──
+  function checkDeepLinkReset() {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const params = new URLSearchParams(hash.replace('#', '?'));
+    const type        = params.get('type');
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    if (type === 'recovery' && accessToken) {
+      sbClient.auth.setSession({ access_token: accessToken, refresh_token: refreshToken || '' })
+        .then(() => goTo('s-newpass'))
+        .catch(err => console.error('Session error:', err));
+    }
+  }
+
+  const ACTIONS = { goTo, selectPlan, handleSignUp, handleSignIn, handleGoogleAuth, showReset, handleNewPassword };
+  document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    const fn = ACTIONS[el.getAttribute('data-action')];
+    if (typeof fn !== 'function') return;
+    e.preventDefault();
+    const arg = el.getAttribute('data-arg');
+    if (arg !== null) fn(arg); else fn();
+  });
+</script>
+</body>
+</html>

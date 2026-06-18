@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReceiptAI — Reset Password</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #080C12; color: #fff; font-family: -apple-system, sans-serif;
+           display: flex; align-items: center; justify-content: center;
+           min-height: 100vh; text-align: center; padding: 24px; }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+    p { color: #94a3b8; font-size: 15px; line-height: 1.5; margin-bottom: 24px; }
+    .btn { display: inline-block; background: linear-gradient(135deg,#0369a1,#06b6d4);
+           color: #fff; font-size: 16px; font-weight: 600; padding: 14px 32px;
+           border-radius: 12px; text-decoration: none; border: none; cursor: pointer; }
+    .sub { font-size: 13px; color: #64748b; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="icon">🔐</div>
+    <h1>Opening ReceiptAI…</h1>
+    <p>Redirecting you to the app to set your new password.</p>
+    <button class="btn" id="open-btn">Open ReceiptAI</button>
+    <p class="sub" id="status">Redirecting automatically…</p>
+  </div>
+  <script>
+    const hash = window.location.hash;
+    const appUrl = 'receiptai://reset-password' + hash;
+
+    function tryOpen() {
+      window.location.href = appUrl;
+      document.getElementById('status').textContent = 'If the app did not open, tap the button above.';
+    }
+
+    document.getElementById('open-btn').addEventListener('click', tryOpen);
+    setTimeout(tryOpen, 800);
+  </script>
+</body>
+</html>
