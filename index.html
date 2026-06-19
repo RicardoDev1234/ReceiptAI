@@ -2163,7 +2163,7 @@ function injectResetModal(initError) {
   // Inject a style tag to nuke everything except our modal
   const nukeStyle = document.createElement('style');
   nukeStyle.id = 'reset-nuke';
-  nukeStyle.textContent = 'body > *:not(#reset-bg):not(#reset-modal) { opacity: 0 !important; pointer-events: none !important; }';
+  nukeStyle.textContent = '* { transition: none !important; } body > *:not(#reset-bg):not(#reset-modal) { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } #reset-bg, #reset-modal { opacity: 1 !important; visibility: visible !important; }';
   document.head.appendChild(nukeStyle);
   const bg = document.createElement('div');
   bg.id = 'reset-bg';
