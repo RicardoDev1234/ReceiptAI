@@ -2253,16 +2253,38 @@ function injectResetModal(initError) {
   const refreshToken = params.get('refresh_token') || '';
 
   function attemptSetSession(tries) {
-    const client = sb(); // use the existing sb() function
+    const client = sb();
     if (client) {
-      client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-        .then(({ data, error }) => {
-          if (error) injectResetModal('Session error: ' + error.message);
-          else {
-            window._resetClient = client;
+      // Supabase v2: short numeric token = use exchangeCodeForSession
+      // Long JWT token = use setSession
+      const isShortCode = accessToken && accessToken.length < 100;
+      const promise = isShortCode
+        ? client.auth.exchangeCodeForSession(accessToken)
+        : client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      promise.then(({ data, error }) => {
+        if (error) {
+          // fallback: try onAuthStateChange for PASSWORD_RECOVERY event
+          client.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY' && session) {
+              window._resetClient = client;
+              injectResetModal();
+            }
+          });
+          // Also try verifyOtp as last resort
+          if (refreshToken) {
+            client.auth.verifyOtp({ token_hash: accessToken, type: 'recovery' })
+              .then(({ error: e2 }) => {
+                if (!e2) { window._resetClient = client; injectResetModal(); }
+                else injectResetModal('Session error: ' + e2.message);
+              });
+          } else {
             injectResetModal();
           }
-        });
+        } else {
+          window._resetClient = client;
+          injectResetModal();
+        }
+      });
     } else if (tries > 0) {
       setTimeout(() => attemptSetSession(tries - 1), 200);
     } else {
