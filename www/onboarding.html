@@ -605,9 +605,12 @@
     </div>
     <div class="input-group">
       <label class="input-label">Password</label>
-      <input class="auth-input" type="password" id="signup-password" placeholder="Enter your password" />
+      <div style="position:relative;">
+        <input class="auth-input" type="password" id="signup-password" placeholder="Enter your password" style="padding-right:60px;" />
+        <button type="button" onclick="var i=document.getElementById('signup-password');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'Show':'Hide';"
+          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#0ea5e9;font-size:13px;font-weight:600;">Show</button>
+      </div>
     </div>
-    <div class="forgot">Forgot password? <a href="#" data-action="showReset">Reset</a></div>
 
     <button class="btn-primary" id="signup-btn" data-action="handleSignUp">Create account</button>
 
@@ -671,9 +674,12 @@
     </div>
     <div class="input-group">
       <label class="input-label">Password</label>
-      <input class="auth-input" type="password" id="signin-password" placeholder="Enter your password" />
+      <div style="position:relative;">
+        <input class="auth-input" type="password" id="signin-password" placeholder="Enter your password" style="padding-right:60px;" />
+        <button type="button" onclick="var i=document.getElementById('signin-password');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'Show':'Hide';"
+          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#0ea5e9;font-size:13px;font-weight:600;">Show</button>
+      </div>
     </div>
-    <div class="forgot">Forgot password? <a href="#" data-action="showReset">Reset</a></div>
 
     <button class="btn-primary" id="signin-btn" data-action="handleSignIn">Sign in</button>
 
