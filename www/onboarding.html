@@ -409,10 +409,22 @@
       <button class="btn-trial" data-action="goTo" data-arg="s-signup">START MY 7-DAY TRIAL</button>
       <div class="cancel-txt">Cancel anytime</div>
       <div class="paywall-links">
-        <a href="#">Terms of Use</a>
-        <a href="#">Restore Purchases</a>
-        <a href="#">Privacy Policy</a>
+        <a href="#" onclick="showLegal('terms');return false;">Terms of Use</a>
+        <a href="#" onclick="restorePurchases();return false;">Restore Purchases</a>
+        <a href="#" onclick="showLegal('privacy');return false;">Privacy Policy</a>
       </div>
+    </div>
+  </div>
+
+  <!-- ══ LEGAL MODAL ══ -->
+  <div id="legal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;overflow-y:auto;padding:40px 20px 60px;">
+    <div style="background:#141414;border:1px solid rgba(14,165,233,0.2);border-radius:20px;max-width:390px;margin:0 auto;padding:28px 24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h2 id="legal-title" style="font-size:18px;font-weight:700;color:#fff;"></h2>
+        <button onclick="document.getElementById('legal-modal').style.display='none';"
+          style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <div id="legal-body" style="font-size:13px;color:#94a3b8;line-height:1.8;"></div>
     </div>
   </div>
 
@@ -586,6 +598,84 @@
   }
 
   // ── EVENT DELEGATION ──
+  // ── LEGAL MODALS ──
+  const LEGAL = {
+    terms: {
+      title: 'Terms of Use',
+      body: `
+        <p style="color:#fff;font-weight:600;margin-bottom:12px;">Last updated: June 2026</p>
+        <p style="margin-bottom:12px;">Welcome to ReceiptAI. By using our app, you agree to these terms.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">1. Use of Service</p>
+        <p style="margin-bottom:12px;">ReceiptAI provides AI-powered receipt scanning and expense tracking. You must be 13 or older to use this service. You agree to use ReceiptAI only for lawful purposes.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">2. Subscriptions & Billing</p>
+        <p style="margin-bottom:12px;">ReceiptAI offers a 7-day free trial. After the trial, your subscription auto-renews at the selected plan rate ($7.99/month or $49.99/year). Cancel anytime before renewal to avoid charges.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">3. Refund Policy</p>
+        <p style="margin-bottom:12px;">Refunds are handled through the App Store or Google Play. We do not process refunds directly. Contact Apple or Google support for billing disputes.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">4. Your Data</p>
+        <p style="margin-bottom:12px;">Your receipt images and expense data are stored securely. We do not sell your personal data to third parties.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">5. AI Accuracy</p>
+        <p style="margin-bottom:12px;">Our AI receipt scanning is highly accurate but not perfect. Always verify important financial data. ReceiptAI is not responsible for errors in AI-generated outputs.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">6. Termination</p>
+        <p style="margin-bottom:12px;">We reserve the right to suspend accounts that violate these terms. You may delete your account at any time from the Profile screen.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">7. Contact</p>
+        <p>For questions, contact us at support@receiptai.app</p>
+      `
+    },
+    privacy: {
+      title: 'Privacy Policy',
+      body: `
+        <p style="color:#fff;font-weight:600;margin-bottom:12px;">Last updated: June 2026</p>
+        <p style="margin-bottom:12px;">ReceiptAI respects your privacy. This policy explains how we collect, use, and protect your information.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">1. Information We Collect</p>
+        <p style="margin-bottom:12px;">• Email address and account credentials<br>• Receipt images you upload<br>• Expense data and categories<br>• Device type and app usage analytics</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">2. How We Use Your Data</p>
+        <p style="margin-bottom:12px;">• To provide and improve our receipt scanning service<br>• To process your subscription and payments<br>• To send important account notifications<br>• To generate your expense reports</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">3. Data Storage & Security</p>
+        <p style="margin-bottom:12px;">Your data is stored securely using Supabase infrastructure with encryption at rest and in transit. Receipt images are processed by OpenAI's GPT-4o and are subject to OpenAI's privacy policy.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">4. Third-Party Services</p>
+        <p style="margin-bottom:12px;">We use the following third-party services:<br>• Supabase (database & authentication)<br>• OpenAI (AI receipt processing)<br>• PayPal (payment processing)</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">5. Data Sharing</p>
+        <p style="margin-bottom:12px;">We do not sell your personal data. We only share data with service providers necessary to operate ReceiptAI.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">6. Your Rights</p>
+        <p style="margin-bottom:12px;">You can delete your account and all associated data at any time from the Profile screen. You may also request a data export by contacting us.</p>
+        <p style="color:#fff;font-weight:600;margin:16px 0 6px;">7. Contact</p>
+        <p>For privacy questions, contact us at privacy@receiptai.app</p>
+      `
+    }
+  };
+
+  function showLegal(type) {
+    const data = LEGAL[type];
+    document.getElementById('legal-title').textContent = data.title;
+    document.getElementById('legal-body').innerHTML = data.body;
+    document.getElementById('legal-modal').style.display = 'block';
+    document.getElementById('legal-modal').scrollTop = 0;
+  }
+
+  function restorePurchases() {
+    if (!sbClient) { alert('Please check your internet connection.'); return; }
+    sbClient.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        alert('Please sign in first to restore purchases.');
+        goTo('s-signin');
+        return;
+      }
+      fetch('https://receiptai-production.up.railway.app/api/subscription-status', {
+        headers: { 'Authorization': 'Bearer ' + session.access_token }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.plan === 'pro') {
+          alert('✅ Purchase restored! You have an active Pro subscription.');
+          window.location.href = 'app.html';
+        } else {
+          alert('No active subscription found for this account.');
+        }
+      })
+      .catch(() => alert('Could not connect. Please try again.'));
+    });
+  }
+
   document.getElementById('onboarding').addEventListener('click', e => {
     const el = e.target.closest('[data-action]');
     if (!el) return;
