@@ -484,7 +484,7 @@
     <!-- Hero card -->
     <div class="home-hero" id="home-hero">
       <div class="hero-label">Total spent this month</div>
-      <div class="hero-amount" id="home-total"><span>$</span><span id="home-total-num">0.00</span></div>
+      <div class="hero-amount" id="home-total"><span id="home-currency-code" style="font-size:22px;font-weight:600;opacity:0.7;">USD</span> <span id="home-total-num">0.00</span></div>
       <div class="hero-period" id="home-period"></div>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -872,9 +872,10 @@
     const avg = thisMonth.length ? total / thisMonth.length : 0;
 
     document.getElementById('home-total-num').textContent = total.toFixed(2);
+    document.getElementById('home-currency-code').textContent = (typeof selectedCurrency !== 'undefined') ? selectedCurrency.code : 'USD';
     document.getElementById('home-receipts').textContent = thisMonth.length;
     document.getElementById('home-categories').textContent = cats;
-    document.getElementById('home-avg').textContent = '$' + avg.toFixed(0);
+    document.getElementById('home-avg').textContent = fmtAmount(avg);
 
     const recent = [...allExpenses].slice(0, 5);
     const container = document.getElementById('home-recent');
