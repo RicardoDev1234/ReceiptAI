@@ -442,6 +442,10 @@
     <div style="display:flex;justify-content:center;margin-bottom:24px;"><div class="trial-badge" style="margin-bottom:0;">✦ 7-day free trial</div></div>
     <div id="signup-error" class="error-msg"></div>
     <div class="input-group">
+      <label class="input-label">Full name</label>
+      <input class="auth-input" type="text" id="signup-name" placeholder="Enter your full name" />
+    </div>
+    <div class="input-group">
       <label class="input-label">Email address</label>
       <input class="auth-input" type="email" id="signup-email" placeholder="Enter your email" />
     </div>
@@ -547,17 +551,19 @@
 
   // ── SIGN UP ──
   async function handleSignUp() {
+    const fullName = document.getElementById('signup-name').value.trim();
     const email    = document.getElementById('signup-email').value.trim();
     const password = document.getElementById('signup-password').value;
     const errEl    = document.getElementById('signup-error');
     const btn      = document.getElementById('signup-btn');
     clearError(errEl);
+    if (!fullName) { showError(errEl, 'Please enter your full name.'); return; }
     if (!email || !password) { showError(errEl, 'Please fill in all fields.'); return; }
     if (password.length < 6) { showError(errEl, 'Password must be at least 6 characters.'); return; }
     if (!sbClient) { showError(errEl, 'Connection not ready. Check internet.'); return; }
     btn.innerHTML = '<span class="spinner"></span>Creating account…';
     btn.disabled = true;
-    const { error } = await sbClient.auth.signUp({ email, password });
+    const { error } = await sbClient.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
     if (error) {
       showError(errEl, error.message);
       btn.textContent = 'Create account'; btn.disabled = false;

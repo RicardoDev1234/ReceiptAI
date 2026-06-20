@@ -695,7 +695,7 @@
         <span class="menu-label" onclick="showSubscription()">Subscription</span>
         <svg class="menu-chevron" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M9 18l6-6-6-6"/></svg>
       </div>
-      <div class="menu-row">
+      <div class="menu-row" onclick="showNotifications()">
         <div class="menu-icon mi-purple">
           <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         </div>
@@ -706,7 +706,7 @@
 
     <div class="section-label">Support</div>
     <div class="menu-list">
-      <div class="menu-row">
+      <div class="menu-row" onclick="showHelp()">
         <div class="menu-icon mi-blue">
           <svg fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
@@ -791,11 +791,12 @@
     const rawName = currentUser.user_metadata?.full_name?.split(' ')[0] || currentUser.user_metadata?.name?.split(' ')[0] || '';
     const name = rawName || 'there';
     document.getElementById('home-greeting').textContent = greeting + ', ' + name;
-    document.getElementById('home-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    // date removed
     document.getElementById('home-period').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     document.getElementById('profile-name').textContent = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email || 'User';
     document.getElementById('profile-email').textContent = currentUser.email;
     document.getElementById('profile-avatar').textContent = name.charAt(0).toUpperCase();
+    initCurrency();
   }
 
   async function loadData() {
@@ -831,6 +832,7 @@
 
   function fmtAmount(a) {
     const n = parseFloat(a) || 0;
+    if (typeof selectedCurrency !== 'undefined') return selectedCurrency.code + ' ' + n.toFixed(2);
     return '$' + n.toFixed(2);
   }
   function fmtDate(d) {
@@ -1033,6 +1035,128 @@
     const tab = document.getElementById('tab-' + name);
     if (tab) tab.classList.add('active');
     if (name === 'expenses') renderExpenses(allExpenses);
+  }
+
+  // ── CURRENCY ──
+  const CURRENCIES = [
+    { flag:'🇦🇫', code:'AFN', name:'Afghanistan' },
+    { flag:'🇦🇱', code:'ALL', name:'Albania' },
+    { flag:'🇩🇿', code:'DZD', name:'Algeria' },
+    { flag:'🇦🇷', code:'ARS', name:'Argentina' },
+    { flag:'🇦🇺', code:'AUD', name:'Australia' },
+    { flag:'🇦🇹', code:'EUR', name:'Austria' },
+    { flag:'🇧🇭', code:'BHD', name:'Bahrain' },
+    { flag:'🇧🇩', code:'BDT', name:'Bangladesh' },
+    { flag:'🇧🇷', code:'BRL', name:'Brazil' },
+    { flag:'🇨🇦', code:'CAD', name:'Canada' },
+    { flag:'🇨🇱', code:'CLP', name:'Chile' },
+    { flag:'🇨🇳', code:'CNY', name:'China' },
+    { flag:'🇨🇴', code:'COP', name:'Colombia' },
+    { flag:'🇭🇷', code:'HRK', name:'Croatia' },
+    { flag:'🇨🇿', code:'CZK', name:'Czech Republic' },
+    { flag:'🇩🇰', code:'DKK', name:'Denmark' },
+    { flag:'🇪🇬', code:'EGP', name:'Egypt' },
+    { flag:'🇪🇺', code:'EUR', name:'Europe' },
+    { flag:'🇫🇷', code:'EUR', name:'France' },
+    { flag:'🇩🇪', code:'EUR', name:'Germany' },
+    { flag:'🇬🇭', code:'GHS', name:'Ghana' },
+    { flag:'🇬🇷', code:'EUR', name:'Greece' },
+    { flag:'🇭🇰', code:'HKD', name:'Hong Kong' },
+    { flag:'🇭🇺', code:'HUF', name:'Hungary' },
+    { flag:'🇮🇳', code:'INR', name:'India' },
+    { flag:'🇮🇩', code:'IDR', name:'Indonesia' },
+    { flag:'🇮🇷', code:'IRR', name:'Iran' },
+    { flag:'🇮🇶', code:'IQD', name:'Iraq' },
+    { flag:'🇮🇱', code:'ILS', name:'Israel' },
+    { flag:'🇮🇹', code:'EUR', name:'Italy' },
+    { flag:'🇯🇵', code:'JPY', name:'Japan' },
+    { flag:'🇯🇴', code:'JOD', name:'Jordan' },
+    { flag:'🇰🇿', code:'KZT', name:'Kazakhstan' },
+    { flag:'🇰🇪', code:'KES', name:'Kenya' },
+    { flag:'🇰🇷', code:'KRW', name:'Korea' },
+    { flag:'🇰🇼', code:'KWD', name:'Kuwait' },
+    { flag:'🇱🇧', code:'LBP', name:'Lebanon' },
+    { flag:'🇲🇾', code:'MYR', name:'Malaysia' },
+    { flag:'🇲🇽', code:'MXN', name:'Mexico' },
+    { flag:'🇲🇦', code:'MAD', name:'Morocco' },
+    { flag:'🇳🇱', code:'EUR', name:'Netherlands' },
+    { flag:'🇳🇿', code:'NZD', name:'New Zealand' },
+    { flag:'🇳🇬', code:'NGN', name:'Nigeria' },
+    { flag:'🇳🇴', code:'NOK', name:'Norway' },
+    { flag:'🇴🇲', code:'OMR', name:'Oman' },
+    { flag:'🇵🇰', code:'PKR', name:'Pakistan' },
+    { flag:'🇵🇭', code:'PHP', name:'Philippines' },
+    { flag:'🇵🇱', code:'PLN', name:'Poland' },
+    { flag:'🇵🇹', code:'EUR', name:'Portugal' },
+    { flag:'🇶🇦', code:'QAR', name:'Qatar' },
+    { flag:'🇷🇴', code:'RON', name:'Romania' },
+    { flag:'🇷🇺', code:'RUB', name:'Russia' },
+    { flag:'🇸🇦', code:'SAR', name:'Saudi Arabia' },
+    { flag:'🇿🇦', code:'ZAR', name:'South Africa' },
+    { flag:'🇪🇸', code:'EUR', name:'Spain' },
+    { flag:'🇸🇪', code:'SEK', name:'Sweden' },
+    { flag:'🇨🇭', code:'CHF', name:'Switzerland' },
+    { flag:'🇹🇼', code:'TWD', name:'Taiwan' },
+    { flag:'🇹🇭', code:'THB', name:'Thailand' },
+    { flag:'🇹🇷', code:'TRY', name:'Turkey' },
+    { flag:'🇺🇦', code:'UAH', name:'Ukraine' },
+    { flag:'🇦🇪', code:'AED', name:'UAE' },
+    { flag:'🇬🇧', code:'GBP', name:'United Kingdom' },
+    { flag:'🇺🇸', code:'USD', name:'United States' },
+    { flag:'🇻🇳', code:'VND', name:'Vietnam' },
+  ];
+
+  let selectedCurrency = JSON.parse(localStorage.getItem('receiptai-currency') || '{"flag":"🇺🇸","code":"USD","name":"United States"}');
+
+  function initCurrency() {
+    document.getElementById('currency-flag').textContent = selectedCurrency.flag;
+    document.getElementById('currency-code').textContent = selectedCurrency.code;
+    renderCurrencyList(CURRENCIES);
+  }
+
+  function openCurrencyPicker() {
+    document.getElementById('currency-modal').style.display = 'block';
+    document.getElementById('currency-search').value = '';
+    renderCurrencyList(CURRENCIES);
+  }
+
+  function filterCurrencies(q) {
+    const filtered = CURRENCIES.filter(c =>
+      c.name.toLowerCase().includes(q.toLowerCase()) ||
+      c.code.toLowerCase().includes(q.toLowerCase())
+    );
+    renderCurrencyList(filtered);
+  }
+
+  function renderCurrencyList(list) {
+    const container = document.getElementById('currency-list');
+    container.innerHTML = list.map(c => `
+      <div onclick="selectCurrency(${JSON.stringify(c).replace(/"/g,'&quot;')})"
+        style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;background:${selectedCurrency.code===c.code && selectedCurrency.name===c.name ? 'rgba(77,142,255,0.12)' : 'transparent'};transition:background 0.15s;">
+        <span style="font-size:24px;">${c.flag}</span>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:500;color:#fff;">${c.name}</div>
+          <div style="font-size:12px;color:#7b83a0;">${c.code}</div>
+        </div>
+        ${selectedCurrency.code===c.code && selectedCurrency.name===c.name ? '<svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="#4d8eff" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>' : ''}
+      </div>
+    `).join('');
+  }
+
+  function selectCurrency(c) {
+    selectedCurrency = c;
+    localStorage.setItem('receiptai-currency', JSON.stringify(c));
+    document.getElementById('currency-flag').textContent = c.flag;
+    document.getElementById('currency-code').textContent = c.code;
+    document.getElementById('currency-modal').style.display = 'none';
+    showToast(c.flag + ' ' + c.code + ' selected', 'success');
+    renderHome();
+    renderExpenses(allExpenses);
+  }
+
+  function fmtCurrency(amount) {
+    const n = parseFloat(amount) || 0;
+    return selectedCurrency.code + ' ' + n.toFixed(2);
   }
 
   // ── TOAST ──
