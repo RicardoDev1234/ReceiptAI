@@ -406,7 +406,7 @@
           </div>
         </div>
       </div>
-      <button class="btn-trial" data-action="goTo" data-arg="s-signup">START MY 7-DAY TRIAL</button>
+      <button class="btn-trial" onclick="startTrial()">START MY 7-DAY TRIAL</button>
       <div class="cancel-txt">Cancel anytime</div>
       <div class="paywall-links">
         <a href="#" onclick="showLegal('terms');return false;">Terms of Use</a>
@@ -562,8 +562,7 @@
       showError(errEl, error.message);
       btn.textContent = 'Create account'; btn.disabled = false;
     } else {
-      goTo('s-paywall');
-      btn.textContent = 'Create account'; btn.disabled = false;
+      window.location.href = 'app.html';
     }
   }
 
@@ -592,9 +591,20 @@
     if (!sbClient) { alert('Connection not ready.'); return; }
     const { error } = await sbClient.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/index.html' }
+      options: { redirectTo: window.location.origin + '/app.html' }
     });
     if (error) alert(error.message);
+  }
+
+  // ── START TRIAL ──
+  async function startTrial() {
+    // If user is already signed in, go straight to app
+    if (sbClient) {
+      const { data: { session } } = await sbClient.auth.getSession();
+      if (session) { window.location.href = 'app.html'; return; }
+    }
+    // Otherwise go to signup
+    goTo('s-signup');
   }
 
   // ── EVENT DELEGATION ──
