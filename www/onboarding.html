@@ -427,7 +427,7 @@
       <div class="auth-brand">Receipt<span>AI</span></div>
     </div>
     <div class="auth-headline">Get started free</div>
-    <div class="trial-badge">✦ 7-day free trial</div>
+    <div style="display:flex;justify-content:center;margin-bottom:24px;"><div class="trial-badge" style="margin-bottom:0;">✦ 7-day free trial</div></div>
     <div id="signup-error" class="error-msg"></div>
     <div class="input-group">
       <label class="input-label">Email address</label>
@@ -503,7 +503,9 @@
         auth: { persistSession: true, autoRefreshToken: true, storageKey: 'receiptai-auth' }
       });
       sbClient.auth.getSession().then(({ data: { session } }) => {
-        if (session) window.location.href = 'app.html';
+        // Only redirect if user came here without intent to see onboarding
+        const params = new URLSearchParams(window.location.search);
+        if (session && !params.get('onboarding')) window.location.href = 'app.html';
       });
     }
   });
