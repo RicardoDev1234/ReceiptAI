@@ -1320,6 +1320,22 @@ function applyTaxVisibility() {
   if (taxCard) taxCard.style.display = NO_TAX_COUNTRIES.includes(userCountry) ? 'none' : '';
 }
 
+// Redirect to app if session exists
+(async function() {
+  if (window.location.hash && window.location.hash.includes('type=recovery')) return;
+  try {
+    const sb = window.supabase && window.supabase.createClient(
+      'https://dnoonrvuetsvbrxaapbr.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRub29ucnZ1ZXRzdmJyeGFhcGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxOTQ3MTQsImV4cCI6MjA5NDc3MDcxNH0.mzTIz12VnJwYkAhuYdYIQO02E3MNFnvk96uSR778oMY',
+      { auth: { persistSession: true, storageKey: 'receiptai-auth' } }
+    );
+    if (sb) {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) { window.location.replace('app.html'); return; }
+    }
+  } catch(e) {}
+})();
+
 const SUPABASE_URL     = (window.SUPABASE_URL     || 'https://dnoonrvuetsvbrxaapbr.supabase.co');
 const SUPABASE_ANON_KEY = (window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRub29ucnZ1ZXRzdmJyeGFhcGJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxOTQ3MTQsImV4cCI6MjA5NDc3MDcxNH0.mzTIz12VnJwYkAhuYdYIQO02E3MNFnvk96uSR778oMY');
 
